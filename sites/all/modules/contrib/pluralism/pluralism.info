@@ -1,0 +1,30 @@
+; $Id: pluralism.info,v 1.1.2.1 2008/02/03 17:43:25 jswaby Exp $
+name = Pluralism
+description = Pluralism is a free, fully standards-compliant CSS template designed by NodeThirtyThree for Free CSS Template.
+core = 6.x
+engine = phptemplate
+
+stylesheets[all][] = reset.css
+stylesheets[all][] = style.css
+stylesheets[print][] = print.css
+
+scripts[] = script.js
+scripts[] = pngfix.js
+
+regions[right] = Right sidebar
+regions[content] = Content
+regions[header] = Header
+regions[footer] = Footer
+
+features[] = favicon
+features[] = mission
+features[] = name
+features[] = slogan
+
+
+; Information added by drupal.org packaging script on 2008-03-08
+version = "6.x-1.0"
+core = "6.x"
+project = "pluralism"
+datestamp = "1204994709"
+

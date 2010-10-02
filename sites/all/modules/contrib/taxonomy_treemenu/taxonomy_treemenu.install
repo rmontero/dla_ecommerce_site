@@ -1,0 +1,512 @@
+<?php
+// $Id: taxonomy_treemenu.install,v 1.23 2009/10/12 19:42:28 rcrowther Exp $
+
+
+
+function taxonomy_treemenu_schema() {
+// We could just pass mlids through the URL. But they will grow extravagantly.
+// Hopefully this table, containing only links to treemenu items, which can only be terms,
+// will grow less.
+// Either way, mlid or this table, the unique (1:1) identification of links
+// with the original Drupal path frees the link_path and router_path elements of
+// menu links to perform their usual roles, even in the prescence of ambiguous
+// link targets.
+/*
+  $schema['taxonomy_treemenu_links'] = array(
+    'description' => 'Links treemenu link items to Drupal nodes and links.',
+    'fields' => array(
+      'ttlid' => array(
+        'description' => 'The term node menu link ID (mlid) is the integer primary key.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE),
+      'mlid' => array(
+        'description' => 'The menu link ID (mlid) references the mlid in the menu links table.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE),
+      'link_path' => array(
+        'description' => 'The Drupal path of the node or term the mlid refers to.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+       'menu_name' => array(
+        'description' => "The menu name. Here used to recover menu options for rendering.",
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => ''),
+      ),
+    'indexes' => array(
+    ),
+       'primary key' => array('ttlid'),
+   );
+*/
+  $schema['taxonomy_treemenu'] = array(
+    'description' => 'Links treemenu link items to Drupal nodes and links.',
+    'fields' => array(
+      'menu_name' => array(
+        'description' => 'Primary Key: Unique key for menu. Keys to a similar field in {menu_custom}.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => ''),
+
+      'depth' => array(
+        'description' => 'The depth relative to the root branch. 0 for all?',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'small'),
+
+      'vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The taxonomy vid of the menu root.',
+        ),
+      'tid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The taxonomy tid of the menu root.',
+        ),
+      /*
+      'type' => array(
+        'description' => 'Type of menu, full data (menu with all links) = 0 or auto-expanding = 1.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny'),
+*/
+      'page_urls_to_mlid' => array(
+        'description' => 'Add the mlid to paged term URLs',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny'),
+   
+
+      'multiple_breadcrumbs' => array(
+        'description' => 'Wether or not to enable multiple breadcrums on multiple heirarchy menus.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny'),
+      
+      // one day this needs renaming as, say, 'unformatted_term_render' or something.
+      'term_as_links' => array(
+        'description' => 'Wether or not to use the internal unformatted theme for term lists.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny'),
+      
+      // unenabled
+      'restructure_terms' => array(
+        'description' => 'Wether or not to restructure term lists, to reflect menu structure.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny'),
+
+      'show_term_descendants' => array(
+        'description' => 'Wether or not to process term pages with descendant term nodes appended.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny'),
+
+      // unused
+      'hide_empty_links' => array(
+        'description' => 'Wether or not to use hide terms with no links.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny'),
+
+       // unused
+       'use_menu_breadcrumb' => array(
+        'description' => 'Wether or not to use a menu paging breadcrumb on menus.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny'),
+
+       // unused
+       'url_append_title' => array(
+        'description' => 'Append titles to extended URLs.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny'),
+
+       'expand' => array(
+        'description' => 'Wether or not a mlid menu should expand.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny'),
+
+      'prefix_urls' => array(
+        'description' => 'Wether or not to prefix treemenu term and node URLs with /ttm/.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny'),
+      'menu_urls' => array(
+        'description' => 'Wether or not to prefix treemenu term and node URLs with the menu name.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny'),
+      'path_urls' => array(
+        'description' => 'Wether or not to add the path to urls',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny'),
+       // unenabled
+       'mlid_url' => array(
+        'description' => 'Wether or not to prefix term and node URLs with the mlid.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny'),
+
+      'nodes' => array(
+        'description' => 'A flag for node display, or not.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'small'),
+      'node_count' => array(
+        'description' => 'Show a count for nodes on the links, or not.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'small'),
+
+
+      'translation_mode' => array(
+        'description' => 'How to translate this menu. Currently  0=by item alternative, 1=item alternative and remove english, 2=by string,',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny'),
+
+      'language' => array(
+        'description' => 'Language of this menu, if defined,',
+        'type' => 'varchar',
+        'length' => 12,
+        'not null' => TRUE,
+        'default' => ''),
+
+
+      // unused, both
+      'dhtml_blocks' => array(
+        'description' => 'A flag for use of DHTML menu in blocks.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'small'),
+      'dhtml_pages' => array(
+        'description' => 'A flag for use of DHTML menu in menus.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'small'),
+
+      // unenabled
+      'pathauto' => array(
+        'description' => 'Wether or not to auto-generate pathauto aliases.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny'),
+       
+
+      'link_roots' => array(
+        'description' => 'Flag for linking tree menus together.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'small'),
+
+      'options' => array(
+        'type' => 'blob',
+        'description' => t('A serialized array of options for this display. It contains options which are pertinent to the menu internal data, rather than wider treemenu consideration.'),
+        'serialize' => TRUE,
+        'serialized default' => 'a:0:{}',
+        ),
+
+      // unused
+      'options_changed' => array(
+        'description' => 'Unused flag which may become useful?.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'small'),
+      ),
+    'indexes' => array(
+    ),
+    'primary key' => array('menu_name'),
+   );
+
+  return $schema;
+}
+
+// Add lineage to menu_links schema.
+function taxonomy_treemenu_schema_alter(&$schema) {
+  $schema['menu_links']['tlineage'] = array('type' => 'varchar', 'length' => 32, 'not null' => TRUE, 'default' => '');
+}
+
+
+function taxonomy_treemenu_update_6600() {
+   $ret = array();
+   $td = array(
+        'description' => 'Wether or not to process term pages with descendant term nodes appended.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny');
+   // Should be renamed as hide empty terms...
+   $hel = array(
+        'description' => 'Wether or not to use hide terms with no links.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny');
+   // unused
+   $umb = array(
+        'description' => 'Wether or not to use a menu breadcrumb on menu URLs.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny');
+   // unused
+   $uat = array(
+        'description' => 'Append titles to extended URLs.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny');
+   $e = array(
+        'description' => 'Wether or not a mlid menu should expand.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny');
+  db_add_field($ret, 'taxonomy_treemenu', 'show_term_descendants', $td);
+  db_add_field($ret, 'taxonomy_treemenu', 'hide_empty_links', $hel);
+  db_add_field($ret, 'taxonomy_treemenu', 'use_menu_breadcrumb', $umb);
+  db_add_field($ret, 'taxonomy_treemenu', 'url_append_title', $uat);
+  db_add_field($ret, 'taxonomy_treemenu', 'expand', $e);
+  return $ret;
+}
+
+
+function taxonomy_treemenu_update_6604() {
+  db_add_field($ret, 'menu_links', 'tlineage', array('type' => 'varchar', 'length' => 32, 'not null' => TRUE, 'default' => ''));
+      $p = array(
+        'description' => 'Wether or not to add the path to urls',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+        'size' => 'tiny');
+      $tm = array(
+        'description' => 'How to translate this menu. Currently 0=by item alternative, 1=item alternative and remove english, 2=by string,',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny');
+     $l = array(
+        'description' => 'Language of this menu, if defined,',
+        'type' => 'varchar',
+        'length' => 12,
+        'not null' => TRUE,
+        'default' => '');
+
+  db_add_field($ret, 'taxonomy_treemenu', 'path_urls', $p);
+  db_add_field($ret, 'taxonomy_treemenu', 'translation_mode', $tm);
+  db_add_field($ret, 'taxonomy_treemenu', 'language', $l);
+  return $ret;
+}
+
+
+function taxonomy_treemenu_update_6700() {
+  $ret = array();
+  $result = db_query("SELECT mlid, link_path FROM {menu_links} WHERE module = '%s'", 'treemenu');
+  while ($lp = db_fetch_array($result)) {
+    $l = substr($lp['link_path'], 8);
+    $bits = explode('/', $l);
+    $bits[0] .= ':';
+    db_query("UPDATE {menu_links} SET tlineage = '%s' WHERE mlid = %d", implode('/', $bits) . '/', $lp['mlid']);
+  }
+  return $ret;
+}
+
+function taxonomy_treemenu_update_6701() {
+  $ret = array();
+  // Set these to zero (options currently hidden, pending revision).
+  db_query("UPDATE {taxonomy_treemenu} SET prefix_urls = %d, menu_urls = %d", 0, 0);
+  $pmu = array(
+    'description' => 'Add the mlid to paged term URLs',
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'default' => 0,
+    'not null' => TRUE,
+    'size' => 'tiny');
+  db_drop_field($ret, 'taxonomy_treemenu', 'type');
+  db_add_field($ret, 'taxonomy_treemenu', 'page_urls_to_mlid', $pmu);
+
+  return $ret;
+}
+
+function taxonomy_treemenu_install() {
+  // Some historical stuff for V5
+  variable_del('taxonomy_treemenu_data');
+  variable_del('taxonomy_router_menus');
+  variable_del('taxonomy_router_display_descendants');
+  variable_del('taxonomy_router_settings');
+
+  // Assert existence of variable and set selector to 'options' style.
+  variable_set('taxonomy_treemenu_selector_is_gui', FALSE);
+  variable_set('default_nodes_taxonomy_treemenu_main', 30);
+  // Create my tables.
+  drupal_install_schema('taxonomy_treemenu');
+  // Add new {menu_links} field
+  db_add_field($ret, 'menu_links', 'tlineage', array('type' => 'varchar', 'length' => 32, 'not null' => TRUE, 'default' => ''));
+}
+
+
+/**
+ * Implements hook_enable().
+ */
+function taxonomy_treemenu_enable() {
+  //TODO: Rebuild menus from any existing data.
+    // ...and add a message.
+  $m = t('If you need help with Taxonomy Treemenu, please see the HTML files in the \'help\' folder.');
+  drupal_set_message($m);
+  $m = t('Please note that Taxonomy Treemenu will work with the DHTML menu module BUT, this version of the module needs DHTML Menu 6.0x-3.5. Future versions of this module or DHTML Menu may work together, but compatibility is unasserted.');
+  drupal_set_message($m);
+  $menu_names = TTMData::allNames();
+  if (!empty($menu_names)) {
+    $message = t('Taxonomy Treemenu has found some data from a previous installation, and will attempt to rebuild the menus.');
+    $message .= t(' Rebuilding... ');
+    $message .= implode(', ', $menu_names);
+  }
+  else {
+    taxonomy_treemenu_advanced_help_message();
+    $message = t('To create a treemenu, find the "Add taxonomy treemenu" tab (or button) on the <a href="@url">Site building > menus page</a>.', array('@url' => url('admin/build/menu')));
+  }
+  drupal_set_message($message);
+
+  foreach($menu_names as $menu_name) {
+    taxonomy_treemenu_linktree_all_createupdate($menu_name);
+  }
+
+}
+
+
+/**
+ * Implementation of hook_disable().
+ */
+function taxonomy_treemenu_disable() {
+  //TODO: should really remove the menu links from the sidebars.
+  //and maybe remove the menus from show?
+  //mymodule_cache_rebuild();
+  // Destroy all treemenu links, leaving the data in the database.
+  $tmd = variable_get('taxonomy_treemenu_data', array());
+  foreach(array_keys($tmd) as $menu_name) {
+
+    // Still don't know what this refers to?
+    $result = db_query("SELECT * FROM {menu_links} ml INNER JOIN {menu_router} m ON ml.router_path = m.path WHERE ml.menu_name = '%s' AND ml.module = 'system' ORDER BY m.number_parts ASC", $menu_name);
+    //SELECT * FROM menu_links INNER JOIN menu_router ON menu_links.router_path = menu_router.path WHERE menu_links.menu_name = 'menu-orangetree' AND menu_links.module = 'system' ORDER BY menu_router.number_parts ASC;
+    while ($item = db_fetch_array($result)) {
+      menu_reset_item($item);
+    }
+
+    // Delete links to the overview page for this menu.
+    $result = db_query("SELECT mlid FROM {menu_links} ml WHERE ml.link_path = '%s'", 'admin/build/menu-customize/'. $menu_name);
+    while ($m = db_fetch_array($result)) {
+      menu_link_delete($m['mlid']);
+    }
+
+    // Delete menu links and references for this menu.
+    db_query("DELETE FROM {menu_links} WHERE menu_name = '%s'", $menu_name);
+    db_query("DELETE FROM {menu_custom} WHERE menu_name = '%s'", $menu_name);
+
+    // Delete all the blocks for this menu.
+    db_query("DELETE FROM {blocks} WHERE module = 'menu' AND delta = '%s'", $menu_name);
+    db_query("DELETE FROM {blocks_roles} WHERE module = 'menu' AND delta = '%s'", $menu_name);
+  }
+
+  // Don't stop there, keep going in case configuration has gone awray.
+  // Scrub block configurations.
+  db_query("DELETE FROM {blocks} WHERE module = 'taxonomy_treemenu'");
+  db_query("DELETE FROM {blocks_roles} WHERE module = 'taxonomy_treemenu'");
+
+  // Scrub menu data clean.
+  db_query("DELETE FROM {menu_links} WHERE module = 'treemenu'");
+
+  // This ought to clean the router links table, which is not easily referencable.
+  // If you ever need it, "DELETE FROM menu_router WHERE path LIKE 'taxmenu%'";
+  cache_clear_all();
+
+}
+
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function taxonomy_treemenu_uninstall() {
+  $ret = array();
+  
+  // Some historical stuff for V5
+  variable_del('taxonomy_router_settings');
+  variable_del('taxonomy_treemenu_data');
+  variable_del('taxonomy_router_menus');
+  variable_del('taxonomy_router_display_descendants');
+
+  // Delete global variables.
+  variable_del('taxonomy_treemenu_selector_is_gui');
+  variable_del('default_nodes_taxonomy_treemenu_main');
+  // Delete all menus.
+  $menu_names = TTMData::allNames();
+  foreach ($menu_names as $menu_name) {
+    _taxonomy_treemenu_delete_menu($menu_name);
+  }
+
+  // Drop the table.
+  drupal_uninstall_schema('taxonomy_treemenu');
+
+  db_drop_field($ret, 'menu_links', 'tlineage');
+}
+

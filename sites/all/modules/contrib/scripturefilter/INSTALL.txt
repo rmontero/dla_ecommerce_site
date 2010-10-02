@@ -1,0 +1,10 @@
+Installation
+------------
+
+1. Copy the scripturefilter.module to the Drupal modules/ directory.
+
+2. Go to administer > configuration > modules, and enable the
+   scripturefilter.module
+
+3. (optionally) Go to administer > configuration > filters > ordering
+   and rearrange the filter order to resolve filter conflicts.

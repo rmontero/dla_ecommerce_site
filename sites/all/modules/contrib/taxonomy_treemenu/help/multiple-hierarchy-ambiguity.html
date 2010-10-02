@@ -1,0 +1,62 @@
+<!-- $Id: multiple-hierarchy-ambiguity.html,v 1.1 2009/08/03 18:57:48 rcrowther Exp $ -->
+
+<h3>Summary</h3>
+<ul>
+<li>
+When expanded to a 2D treemenu, multiple hierarchies may have multiple links to represent  nodes and terms. 
+</li>
+<li>
+When a term or node is paged, various treemenu functions, will not know how to react.
+These functions must be abandoned, or special measures taken.
+</li>
+</ul>
+
+<h3>Description</h3>
+<p>
+Here is a very simple multiple parent hierarchy,
+</p>
+
+<pre>
++--------------------------- tid 9 ----- +
+voc3 +----- tid 5 --- tid 7 ----- node 34
+</pre>
+
+<p>
+But a 2D screen menu is not a multiple parent hierarchy, it's a single parent hierarchy. 
+The conventional approach is to expand like this,
+</p>
+
+<pre>
++------------------------ tid 9 ----- node 34
+voc3 +----- tid 5 --- tid 7 ----- node 34
+</pre>
+
+<p>
+(Note that we have abandoned a possibility. 
+Instead of multiplying nodes and keeping the parent structure, we could keep the nodes and shred the parent structure.
+However, most people regard the parent structure as more important than the nodes themselves.
+Hence ...bloggers?)
+</p>
+
+<p>
+What happens when page q=node/34 is called?
+</p>
+
+<p>
+Well? Drupal gets it's information from the URL. 
+If the menu is in a block, it has absolutely no idea what to do next.
+If expanding, which path does it expand down?
+<pre>
+voc3 >> tid 9 >> node 34
+</pre>
+or
+<pre>
+voc 3 >> tid 5 >> tid 7 >> node 34
+</pre>
+And which path is the breadcrumb? If the menu doesn't know where to go, neither do the breadcrumbs.
+</p>
+<p>
+Taxonomy Treemenu has offered several answers to this ambiguity in the past, and probably will in the future.
+You may want to look at our notes on <a href="&topic:taxonomy_treemenu/custion-urls&">menu prefixes</a> 
+and <a href="&topic:taxonomy_treemenu/multiple-breadcrumbs&">multiple breadcrumbs</a>.
+</p>

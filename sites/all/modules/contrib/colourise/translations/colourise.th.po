@@ -1,0 +1,180 @@
+# $Id: colourise.th.po,v 1.1.2.4 2009/02/05 20:43:36 gibbozer Exp $
+#
+# Thai translation of Drupal (Colourise Theme)
+# Copyright 2009 http://webzer.net/ <gibbozer[at]gmail[dot]com>
+# Generated from files:
+#  maintenance-page.tpl.php,v 1.1.2.2 2009/02/05 20:25:35 gibbozer
+#  page.tpl.php,v 1.1.1.8 2009/02/05 18:09:25 gibbozer
+#  node.tpl.php,v 1.1.1.7 2009/02/04 19:23:30 gibbozer
+#  template.php,v 1.1.1.7 2009/02/05 10:34:25 gibbozer
+#  theme-settings.php,v 1.1.1.10 2009/02/05 10:34:25 gibbozer
+#  colourise.info,v 1.1.1.6 2009/02/04 19:23:30 gibbozer
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Colourise\n"
+"POT-Creation-Date: 2009-02-05 16:59+0700\n"
+"PO-Revision-Date: 2009-02-05 16:59+0700\n"
+"Last-Translator: gibbzer <gibbozer[at]gmail[dot]com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=((n==1)?(0):1);\n"
+
+#: node.tpl.php:20
+msgid "Related Terms"
+msgstr "หัวข้อที่เกี่ยวข้อง"
+
+#: page.tpl.php:39
+msgid "Home"
+msgstr "หน้าแรก"
+
+#: template.php:44
+msgid "Original Design is "
+msgstr "ดีไซน์ดั้งเดิมจาก "
+
+#: template.php:44
+msgid "Ported to Drupal by "
+msgstr "ปรับแต่งเพื่อใช้งานในดรูปอล โดย "
+
+#: template.php:55;55
+msgid "Skip to Primary Menu"
+msgstr "ข้ามไปยังเมนูหลัก"
+
+#: template.php:56;56;63;63
+msgid "Skip to Main Content"
+msgstr "ข้ามไปยังส่วนเนื้อหาหลัก"
+
+#: template.php:74
+msgid "Back To Top"
+msgstr "กลับขึ้นด้านบน"
+
+#: theme-settings.php:27
+msgid "Colourise Theme Settings"
+msgstr "ตั้งค่าธีม Colourise"
+
+#: theme-settings.php:28
+msgid "Use these settings to change what and how information is displayed in <strong>Colourise</strong> theme."
+msgstr ""
+"คุณสามารถใช้ตั้งค่าการใช้งานธีม "
+"เพื่อเปลี่ยนแปลงลักษณะพิเศษและการแสดงผลข้อมูลสำหรับธีม "
+"<strong>Colourise</strong> โดยเฉพาะ"
+
+#: theme-settings.php:35
+msgid "Page Width"
+msgstr "ความกว้างหน้าเว็บ"
+
+#: theme-settings.php:36
+msgid "Select the page width you need. <strong>Be careful</strong>, the Narrow and Medium Width may not suite 2 sidebars."
+msgstr ""
+"เลือกขนาดความกว้างของหน้าเว็บที่คุณต้องการ "
+"แต่ <strong>โปรดระวัง</strong> "
+"เพราะความกว้าง ขนาด แคบ "
+"และ ปานกลาง "
+"อาจไม่เหมาะกับการใช้ "
+"ไซต์บาร์ 2 ข้าง"
+
+#: theme-settings.php:39
+msgid "Narrow (Fixed width: 780px)"
+msgstr "แคบ (ความกว้างคงที่: 780px)"
+
+#: theme-settings.php:40
+msgid "Medium (Fixed width: 840px)"
+msgstr ""
+"ปานกลาง (ความกว้างคงที่: "
+"840px)"
+
+#: theme-settings.php:41
+msgid "Wide (Fixed width: 960px)"
+msgstr ""
+"กว้างปกติ "
+"(ความกว้างคงที่: 960px)"
+
+#: theme-settings.php:42
+msgid "Super Wide (Fixed width: 1020px)"
+msgstr ""
+"กว้างมาก (ความกว้างคงที่: "
+"1020px)"
+
+#: theme-settings.php:43
+msgid "Extreme Wide (Fixed width: 1140px)"
+msgstr ""
+"กว้างมากพิเศษ "
+"(ความกว้างคงที่: 1140px)"
+
+#: theme-settings.php:44
+msgid "Fluid (min-width: 780px)"
+msgstr "ยืดหยุ่น (กว้างไม่ต่ำกว่า: 780px)"
+
+#: theme-settings.php:50
+msgid "Other Features"
+msgstr "คุณสมบัติเสริมอื่นๆ"
+
+#: theme-settings.php:51
+msgid "Check / Uncheck each themes features you want to activate or deactivate for your site."
+msgstr ""
+"เลือก / ยกเลิก "
+"คุณสมบัติเสริมพิเศษของธีมที่คุณต้องการเปิดหรือปิดการใช้งานในเว็บไซต์"
+
+#: theme-settings.php:58
+msgid "Use <strong>IE Transparent PNG Fix</strong>"
+msgstr "ใช้งาน <strong>IE Transparent PNG Fix</strong>"
+
+#: theme-settings.php:64
+msgid "Add <strong>Customized Stylesheet (custom.css)</strong>"
+msgstr ""
+"เพิ่ม "
+"<strong>สไตล์ชีตที่คุณจัดการเอง "
+"(custom.css)</strong>"
+
+#: theme-settings.php:70
+msgid "Show <strong>Breadcrumbs</strong>"
+msgstr "แสดง <strong>Breadcrumbs</strong>"
+
+#: theme-settings.php:76
+msgid "Show <strong>Back to Top link</strong> (the link will appear at footer)"
+msgstr ""
+"แสดง "
+"<strong>ลิ้งค์กลับขึ้นด้านบน</strong> (ลิงค์จะปรากฏในส่วนล่างลุดของหน้าเว็บ)"
+
+#: colourise.info:0
+msgid "Colourise"
+msgstr "Colourise"
+
+#: colourise.info:0
+msgid "Dark tableless design with valid XHTML/CSS. Visit <a href="http://webzer.net/tags/colourise">Webzer.net</a> for more informations."
+msgstr ""
+"ดีไซน์โทนมืด "
+"ไม่ใช้ตารางในเลย์เอาต์ "
+"และเป็น valid XHTML/CSS "
+"อ่านข้อมูลเพิ่มเติมที่ <a "
+"href=\"http://webzer.net/tags/colourise\">Webzer.net</a>"
+
+#: colourise.info:0
+msgid "Left sidebar"
+msgstr "ไซด์บาร์ด้านซ้าย"
+
+#: colourise.info:0
+msgid "Right sidebar"
+msgstr "ไซด์บาร์ด้านขวา"
+
+#: colourise.info:0
+msgid "Top Content"
+msgstr "บล็อคด้านบนเนื้อหา"
+
+#: colourise.info:0
+msgid "Bottom Content"
+msgstr "บล็อคด้านล่างเนื้อหา"
+
+#: colourise.info:0
+msgid "Footer Block 1"
+msgstr "บล็อคส่วนท้าย 1"
+
+#: colourise.info:0
+msgid "Footer Block 2"
+msgstr "บล็อคส่วนท้าย 2"
+
+#: colourise.info:0
+msgid "Footer Block 3"
+msgstr "บล็อคส่วนท้าย 3"

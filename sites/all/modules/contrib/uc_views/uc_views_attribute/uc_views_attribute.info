@@ -1,0 +1,23 @@
+; $Id: uc_views_attribute.info,v 1.1.2.2 2009/12/03 12:48:31 madsph Exp $
+name = Ubercart Views Attribute
+description = Create views on Ubercart Attribute data.
+dependencies[] = uc_stock
+dependencies[] = uc_product
+dependencies[] = uc_order
+dependencies[] = uc_attribute
+dependencies[] = views
+dependencies[] = uc_views
+package = "Ubercart - views"
+
+; Information added by drupal.org packaging script on 2008-06-19
+core = 6.x
+project = "uc_views_attribute"
+datestamp = "1213888517"
+
+
+; Information added by drupal.org packaging script on 2009-12-16
+version = "6.x-3.0"
+core = "6.x"
+project = "uc_views"
+datestamp = "1260955563"
+

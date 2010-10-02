@@ -1,0 +1,314 @@
+<?php
+// $Id: uc_upsell.module,v 1.7.2.33 2010/01/03 23:49:25 torgospizza Exp $
+
+/**
+ * @file
+ * Allows merchants to associate multiple products together, and offer related products before checkout.
+ *
+ * You'll need to adjust the number of results you'd like displayed,
+ * as well as any customer messages to show on the cart screen.
+ *
+ * A new admin area is created under /admin/store/products/upsell where you can see what
+ * products are currently associated with each other. When a user checks out with a product
+ * or products that don't currently have any other products associated with it, they will
+ * instead get a list of random products from the catalog.
+ *
+ * To administer the product upsell options go to /admin/store/settings/upsell
+ *
+ * Development by Erik from RiffTrax - www.rifftrax.com
+ * - Additional development by bemson with patches from naturesimple
+ */
+
+include_once 'uc_upsell_admin.inc'; // Include admin and configuration functions
+include_once 'uc_upsell_block.inc'; // Include hook_block and block theming
+include_once 'uc_upsell_cart_pane.inc'; // Include hook_cart_pane and theming
+include_once 'uc_upsell_core.inc'; // Include core logic
+
+/*******************
+ * Drupal hooks
+ *******************/
+
+/**
+ * Implementation of hook_init().
+ */
+function uc_upsell_init() {
+  $config = uc_upsell_get_config();
+
+  // Check to see if any terms have been setup yet (for finding related based on taxonomy)
+  $cached = cache_get('uc_upsell_terms');
+  if (!$cached->data) {
+    // If not, compute the terms. They are cleared daily by default. @TODO: Make this a config.
+    uc_upsell_compute_terms();
+  }
+
+  // If the default product types got borked, reset them.
+  if (!is_array($config)) {
+    $uc_upsell_config_defaults = uc_upsell_reset_config();
+  };
+}
+
+/**
+ * Implementation of hook_menu()
+ */
+function uc_upsell_menu() {
+  $items['admin/store/products/upsell'] = array(
+    'title' => 'Related products associations',
+    'description' => 'Manage related products offered at checkout',
+    'access arguments' => array('administer products'),
+    'page callback' => 'upsell_products_admin',
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'uc_upsell_admin.inc',
+  );
+  $items['admin/store/settings/upsell'] = array(
+    'title' => 'Related products settings',
+    'description' => 'Manage settings for related products.',
+    'access arguments' => array('administer upsell settings'),
+    'page callback' => 'upsell_products_settings',
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'uc_upsell_admin.inc',
+  );
+  return $items;
+}
+
+
+/**
+ * Implementation of hook_perm()
+ */
+function uc_upsell_perm() {
+  return array('administer upsell settings');
+}
+
+
+/**
+ * Implementation of hook_cron
+ */
+function uc_upsell_cron() {
+  uc_upsell_compute_terms();
+}
+
+
+/**
+ * Implementation of hook_nodeapi
+ */
+function uc_upsell_nodeapi(&$node, $op) {
+  switch ($op) {
+    case 'insert':
+    case 'update':
+      uc_upsell_relateds_add($node);
+      break;
+  }
+}
+
+
+/*****************************
+ * Module specific functions
+ *****************************/
+
+/**
+ * Implementation of hook_theme().
+ */
+function uc_upsell_theme() {
+  return array(
+    'pane_upsell' => array(
+      'arguments' => array('products' => NULL, 'msg' => 'Related Products'),
+    ),
+    'upsell_item' => array(
+      'arguments' => array('node' => NULL),
+    ),
+  );
+}
+
+/**********************************
+ * Helper functions
+ *********************************/
+
+/**
+ * Helper function to find node types and push the 'type' value into the array
+ */
+function uc_upsell_get_types_array($array) {
+  $newarray = array();
+
+  if (is_array($array)) {
+    foreach ($array as $product) {
+      $type = db_result(db_query("SELECT type FROM {node} WHERE nid = %d", $product));
+      $newarray[$product] = $type;
+    }
+    return $newarray;
+  }
+  else {
+    return;
+  }
+}
+
+/**
+ * Filter out nodes whose types are not configured, and any unpublished nodes
+ */
+function uc_upsell_filter_types($array) {
+  $config = uc_upsell_get_config();
+
+  foreach ($array as $product => $type) {
+    $status = db_result(db_query("SELECT `status` FROM {node} WHERE nid = %d", $product));
+    if (!in_array($type, uc_upsell_get_config_types()) || $status == 0) {
+      unset($array[$product]);
+    }
+  }
+  return $array;
+}
+
+/**
+ * Get the configured types and return a filtered array (remove elements with FALSE value)
+ * TODO: Add a configuration for taxonomy terms
+ */
+function uc_upsell_get_config_types() {
+  $config = uc_upsell_get_config();
+  return array_filter(array_values($config['global']['types']));
+}
+
+
+/**
+ * Helper function to return the names and keys for the settings array
+ * @return An array of products, where the type is the key and the name is the value
+ */
+function uc_upsell_get_product_names($array) {
+  $products = array();
+  foreach ($array as $product => $key) {
+    $products[$product] = $key['name'];
+  }
+  // Include product kits
+  $products['product_kit'] .= 'Product Kit';
+  return $products;
+}
+
+/**
+ * Helper function to return the names and keys for the settings array
+ * @return An array of products, where the type is the key and the name is the value
+ */
+function uc_upsell_get_product_names_types($array) {
+dsm('got array '.print_r($array, true));
+  $products = array();
+  foreach ($array as $product => $key) {
+    $products[$product] = $key['name'];
+  }
+  // Include product kits
+  $products['product_kit'] .= 'Product Kit';
+  return $products;
+}
+
+
+/**
+ * Render an Upsell block within a theme
+ */
+function uc_upsell_render() {
+  $block = module_invoke('uc_upsell', 'block', 'view', 0);
+  if ($block['content']) {
+    $output .= '<div class="upsell-products-block">
+                <p class="product-related-subject">'.t($block['subject']).'</p>';
+    $output .= $block['content'];
+    $output .= '</div>';
+  }
+  print $output;
+}
+
+
+/**
+ * Renders upsell item in block or checkout pane.
+ */
+function theme_upsell_item($node) {
+  $config = uc_upsell_get_config();
+  
+  // Get the imagefield to use (or use the default if it's not configured)
+  $imagefield = (isset($config['global']['upsell_image'])) ? $config['global']['upsell_image'] : variable_get('uc_image_'. $node->type, 'field_image_cache');
+  $imagefield = $node->{$imagefield[0]}[0]['filepath'];
+  
+  $output = '';
+
+  if (module_exists('imagecache')) {
+    // If we are configured to show the default image because none exists..
+    if ($imagefield && file_exists($node->image['filepath'] . $imagefield)) {
+      $output .= l(theme('imagecache', uc_upsell_get_imagecache_preset(), $node->image['filepath'] . $imagefield, $node->title, $node->title, array('class' => 'buy-related-item')), 'node/'. $node->nid, array('attributes' => array('class' => 'buy-related-item'), 'html' => TRUE));
+    }
+    elseif ($config['block']['use_default'] == TRUE && !$imagefield) {
+      // Use the default image, if we're configured to do so
+      $output .= l(theme('imagecache', uc_upsell_get_imagecache_preset(), 'files/default_product.jpg', $node->title, $node->title, array('class' => 'buy-related-item')), 'node/'. $node->nid, array('attributes' => array('class' => 'buy-related-item'), 'html' => TRUE));
+    }
+  }
+
+  // Linked title
+  $output .= '<div class="upsell-block-product-title">';
+  $output .= l($node->title, 'node/'. $node->nid, array('attributes' => array('class' => 'buy-related-item'), 'html' => TRUE));
+  $output .= '</div>';
+
+  // Only show an "add to cart" link if there is a value for Sell Price
+  // TODO: Make destination configurable
+  $weight = variable_get('uc_product_field_weight', array(
+    'image' => -2,
+    'display_price' => -1,
+    'model' => 0,
+    'list_price' => 2,
+    'cost' => 3,
+    'sell_price' => 4,
+    'weight' => 5,
+    'dimensions' => 6,
+    'add_to_cart' => 10,
+  ));
+
+  $product = array(
+    '#node' => $node,
+  );
+
+  // Only display the list price if the field is configured in Product Settings.
+  $enabled = variable_get('uc_product_field_enabled', array(
+    'image' => 1,
+    'display_price' => 1,
+    'model' => 1,
+    'list_price' => 0,
+    'cost' => 0,
+    'sell_price' => 1,
+    'weight' => 0,
+    'dimensions' => 0,
+    'add_to_cart' => 1,
+  ));
+
+  $context = array(
+    'revision' => 'themed',
+    'type' => 'product',
+    'class' => array('product'),
+    'subject' => array('node' => $node),
+  );
+
+  if ($enabled['list_price']) {
+    $context['class'][1] = 'list';
+    $context['field'] = 'list_price';
+    $product['list_price'] = array(
+      '#value' => uc_price($node->list_price, $context),
+      '#access' => $enabled['list_price'],
+      '#weight' => $weight['list_price'],
+    );
+  }
+
+  $context['class'][1] = 'sell';
+  $context['field'] = 'sell_price';
+  $product['sell_price'] = array(
+    '#value' => uc_price($node->sell_price, $context),
+    '#access' => $enabled['display_price'],
+    '#weight' => $weight['display_price'],
+  );
+
+  // Show a Buy Now form if we are configured to do so.
+  if ($config['global']['buy_now'] == TRUE) {
+    $product['add_to_cart'] = array('#value' => drupal_get_form('uc_catalog_buy_it_now_form_'. $node->nid, $node));
+  }
+  else {
+    $product['add_to_cart'] = array(
+      '#value' => theme('uc_product_add_to_cart', $node, TRUE, FALSE),
+      '#access' => $enabled['add_to_cart'],
+      '#weight' => $weight['add_to_cart'],
+    );
+  }
+
+  drupal_alter('uc_upsell_product', $product);
+
+  $output .= drupal_render($product);
+
+  return $output;
+}

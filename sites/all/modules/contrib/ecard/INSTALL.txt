@@ -1,0 +1,28 @@
+// $Id: INSTALL.txt,v 1.1.4.2 2009/02/17 21:13:05 karst Exp $
+*************************************************
+           Ecard Module
+*************************************************
+Author: msarath
+co-maintainers: Karsten Frohwein
+This is the Drupal 6 version.
+
+Installation
+--------------------
+Please install this module like any other Drupal module.
+You can finde a documentation here:
+
+http://drupal.org/node/120641
+
+
+Steps to install ecard module
+--------------------
+1. Unzip and copy the entire module to your modules directory
+(eg: /sites/all/modules )
+
+2. Go to admin/settings/ecard to configure ecard , choose which content you
+want to send as ecard.
+
+3. Go to admin/user/access to set access permissions.
+
+4. Try to create a content once it get submitted you will see a form to
+send that as an ecard.

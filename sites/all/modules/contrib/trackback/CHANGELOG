@@ -1,0 +1,10 @@
+** 1.x-dev **
+
+  -- 2009-05-05 --
+  [#417306] (thePanz) Fixed Trackback-URL missing in per-node block 
+  -- 2008-12-09 --
+  [#297487] (thePanz) improvements for trackback node display
+  [#228797] (thePanz) Trackback settings is shown for non-permission-users in add new blog
+  [#299970] (thePanz) Bad class "0" on trackback link
+  [#281772] (thePanz) Can't update with Update-Status and CVS-Deploy
+  [#311020] (thePanz) Moving Trackback-URL to block

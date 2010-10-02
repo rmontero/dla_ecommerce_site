@@ -1,0 +1,16 @@
+<?php
+// $Id: visual_event.module,v 1.1 2009/10/30 17:33:51 enzo Exp $ 
+function visual_event_perm() {
+  return array('access visual events');
+}
+
+function visual_event_init() {
+  if (user_access('access visual events')) {
+    $path = drupal_get_path('module', 'visual_event');
+    drupal_add_css($path. '/visual_event.css');
+    drupal_add_js($path .'/visual_event-loader.js');
+    drupal_add_js($path .'/visual_event.js');
+  	drupal_add_js(array('veStrings' =>array('visual_events' => t('Visual Events'))),'setting');  
+  }  
+}
+

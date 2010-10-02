@@ -1,0 +1,102 @@
+<!-- $Id: template-suggestions.html,v 1.1 2009/08/03 18:57:48 rcrowther Exp $ -->
+
+
+<h3>An introduction to template suggestions</h3>
+
+<p>Most Drupal users are aware that they can make a template file called front.tpl.php, 
+which will style the front page of a site. 
+Another commonly used template is node.tpl.php, which will style nodes. 
+Generally, designers will stop there,
+as they wish to establishing an overall style for the site,
+which requires considerable skill and work.
+They put their effort into styling the regions and the css which will have a big impact on visitors.
+</p>
+<p>
+In fact, these template names are not hard coded into Drupal. 
+For every page called on a site, Drupal considers an array of possibilites, 
+called the 'suggestions', and chooses the most relevant.
+For example, a designer can target just about any page with a template, such as,
+</p>
+<pre>
+node-86.tpl.php
+</pre>
+
+<p>
+You might be wonderning "Where does Drupal get these template 'suggestions'?" and "How do I find out what they are?"
+</p>
+
+<p>
+You can find out what they are conclusively by adding a page preprocessor to code,
+ and printing out the part of variable array 'suggestions'. Thus,
+</p>
+
+
+<p>Or use the code intensive but pretty 'Theme Developer' section of the 'Devel' module.</p>
+
+<p>
+There is a lighter and non-code way to find the name of template suggestions.
+All a designer has to do is guess, and in most cases they will be right! 
+By default, Drupal constructs template suggestions by breaking up the URL. 
+Replace URL hyphens with slashes e.g.
+</p>
+
+<pre>
+  ?q=node/56
+</pre>
+
+<p> will generate these suggestions,</p>
+
+<pre>
+node-56.tpl.php
+node.tpl.php
+</pre>
+
+<p>Coders and themers can tinker with suggestions in bits of code called 'preprocessors'. 
+For example, introduce their own suggestions. A theme coder can rework Drupal to find,</p>
+
+<pre>page-fish-tank.tpl.php</pre>
+
+<p>And ask selected pages to respond this template. Despite the lack of a URL called www.[site]?q=fish/tank</p>
+
+
+<h3>Template suggestions and the Taxonomy</h3>
+<p>
+By default the suggestions system will not target the taxonomy.
+So you can't call a template by names such as these,
+<pre>
+node-descendant-term-16.tpl.php
+vocabulary-7-term-3.tpl.php
+</pre>
+Useful though they may sometimes seem.
+</p>
+<p>
+However, there are good reasons for wanting some control in these areas.
+The Forum module, for example, stores it's data in the taxonomy, 
+but clearly a designer will not want the forum to be styled like the site's content nodes! 
+So the Forum module tinkers with template suggestions allowing a designer to style Forum pages in a distinctive way. 
+</p>
+
+<h3>Template suggestions and Taxonomy Treemenu</h3>
+<p>
+For similar reasons to the Forum module, Taxonomy Treemenu offers template suggestions.
+</p>
+
+<p>
+The usual solution is by altering the URLs of the menus.
+This hands control of the rendering to Taxonomy Treemenu, 
+giving several advantages such as control over breadcrumbing.
+Since the URLs are altered, Drupal automatically reconstructs the menu suggestions.
+Prefixing URLs with the menu name will provide template possibilites such as,
+
+<pre>
+page-ttm
+page-ttm-menu
+page-ttm-menu-weathersounds.tpl.php
+page-ttm-menu-weathersounds-node.tpl.php
+page-ttm-menu-weathersounds-term.tpl.php
+</pre>
+This method is stock Drupal code and needs no extra overhead in terms of computer memory or CPU power.
+</p>
+<p> 
+(The module offers offers two solutions.) 
+</p>

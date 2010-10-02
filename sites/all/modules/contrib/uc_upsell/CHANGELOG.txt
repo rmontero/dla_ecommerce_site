@@ -1,0 +1,73 @@
+CHANGELOG.txt
+
+9/3/2009 - v.6.x-1.16
+-----------------
+- Changed handler for product images. It's configured now to use either the node-type default,
+  or the Ubercart default of "uc_product" unless something else is configured in the Upsell settings.
+  NOTE: If your images are now showing up, or with the incorrect Imagecache preset, check this first!
+- Added "one-to-one" and "one-to-many" options in the way reciprocals are associated.
+- Changed products selected by the node edit form so that they take precedence over related-by-
+  taxonomy products in the event that both exist in the array.
+- Fixed some issues with product classes.
+
+6/12/2009
+---------
+- Added $context information and changed formatting to use uc_price.
+- Credit belongs to sammys and longwave for their patch contributions!
+
+
+4/26/2009
+---------
+- Fixed the array_merge issues that appeared when a product had no related nodes, or when submitting
+a node form with an empty Related Products list.
+- Refactored some of the code involving related nodes by taxonomy.
+- Added / changed some logic to updating related products - now instead of associating Product A
+with Product B, it associates all of Product A's related products, along with Product A, to Product B - creating a many-to-many relationship, instead of 1 to many.
+
+4/25/2009
+---------
+Fixed some issues with logic and products not displaying correctly, cart pane not showing at all,
+etc.
+Also broke up the module into additional include files, separating the logic from the admin,
+cart pane, and block sections. This will allow for better code maintenance going forward.
+
+
+4/10/2009
+---------
+Added additional CSS classes; removed 'content' div.
+Fixing issues related to random products showing in block instead of Related products.
+Removed ending punctuation for Customer Message on product Block
+Added hook_nodeapi to allow simple insertion of Upsell block into .tpl.php files.
+
+3/27/2009
+---------
+Removed 'upid' field from schema and changed primary key to 'nid'. Removed the table {uc_upsell_nodetypes}.
+
+
+3/23/2009
+---------
+Fixed bugs involved in the configuration settings:
+ - Default config taken out of $GLOBALS, since that was causing issues
+ - Moved default settings into hook_init and out of hook_menu
+
+Imagecache 2.x compatibility:
+ - UC Upsell is now no longer compatible with Imagecache 1.x (since this is no longer recommended for D5).
+
+
+3/11/2009
+---------
+Fixed a bug where unpublished nodes could still show up if they had been previously selected by the Related Products
+  select list, but had since been unpublished. Filtering happens in the same function as the node->type filter.
+
+2/26/2009
+---------
+Added configuration settings for selecting certain node types to show in the Related Products form during Node Edit
+  These settings affect the products that are displayed in the cart / product blocks as well.
+  For instance, if you have products of both Foo and Bar selected in the product's form, and then change the config
+  settings to only show products of type Bar, any products of type Foo will no longer be shown in the Edit form OR
+  in the product page or the cart page.
+
+Added configurable imagecache preset: This allows store admins to choose which preset they would like to use from
+  Imagecache as their thumbnail preset globally. TODO: Make this context-sensitive, perhaps an additional preset for
+  cart page vs. preset for product or other node pages.
+

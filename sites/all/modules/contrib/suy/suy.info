@@ -1,0 +1,12 @@
+; $Id: suy.info,v 1.1.2.1 2009/05/18 05:35:51 caktux Exp $
+name = "SUY"
+description = "Display's a modal dialog to IE6 users prompting to upgrade to a better or newer browser."
+package = "Other"
+core = 6.x
+
+; Information added by drupal.org packaging script on 2010-07-11
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "suy"
+datestamp = "1278835837"
+

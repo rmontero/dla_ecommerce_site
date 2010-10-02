@@ -1,0 +1,303 @@
+<?php
+// $Id: facebook_auth.module,v 1.9.4.2 2008/12/13 21:32:59 halkeye Exp $
+
+/**
+ * @file
+ * Facebook authentication. 
+ * 
+ * Essentially wrappers around any code that is required to do basic authentication 
+ * with facebook.
+ */
+
+if (substr(phpversion(), 0, 1) == '4') {
+   if (file_exists(dirname(__FILE__) .'/facebook-platform/php4client/facebook.php')) {
+     require_once('facebook-platform/php4client/facebook.php');
+   }
+   else {
+     drupal_set_message('Platform needs to be installed. See readme file');
+   }
+}
+else {
+   if (file_exists(dirname(__FILE__) .'/facebook-platform/client/facebook.php')) {
+     require_once('facebook-platform/client/facebook.php');
+   }
+   elseif (file_exists(dirname(__FILE__) .'/facebook-platform/php/facebook.php')) {
+      require_once('facebook-platform/php/facebook.php');
+   }
+   else {
+     drupal_set_message('Platform needs to be installed. See readme file');
+   }
+}
+
+function facebook_auth_help($path, $arg) {
+   switch ($path) {
+     case 'admin/settings':
+       return t('Configure your API and Secret Key provided by facebook.');
+     case 'admin/settings/facebook_auth':
+       return t('Sign up for a new application at !url. Fill in provided keys here.',
+         array('!url' => l(t('facebook developer page'), 'http://www.facebook.com/developers/'))
+       );
+   }
+}
+
+function facebook_auth_menu() {
+   $items = array();
+   $items['admin/settings/facebook_auth'] = array(
+         'title' => 'Configure Facebook settings',
+         'page callback' => 'drupal_get_form',
+         'page arguments' => array('facebook_auth_admin'),
+         'access callback' => 'user_access',
+         'access arguments' => array('administer facebook'),
+         'type' => MENU_NORMAL_ITEM,
+         );
+
+   $items['facebook'] = array(
+         'title' => 'my Facebook account',
+         'page callback' => 'facebook_auth',
+         // There's no real reason to have this disallowed unless you don't want facebook auth, in that case, you should
+         // Probably just disable the module
+         'access callback' => TRUE,
+         'type' => MENU_CALLBACK
+   );
+   $items['user/%user/facebook_auth'] = array(
+         'title' => 'Facebook Identities',
+         'page callback' => 'facebook_auth_user_identities',
+         'page arguments' => array(1),
+         'access callback' => 'facebook_auth_access_user',
+         'access arguments' => array(1),
+         'type' => MENU_LOCAL_TASK,
+         //'file' => 'tracker.pages.inc',
+   );
+   $items['user/%user/facebook_auth/delete'] = array(
+         'title' => 'Delete Facebook',
+         'page callback' => 'facebook_auth_user_delete',
+         'page arguments' => array(1),
+         'access callback' => 'facebook_auth_access_user',
+         'access arguments' => array(1),
+         'type' => MENU_CALLBACK
+         //'file' => 'tracker.pages.inc',
+   );
+
+   return $items;
+}
+
+function facebook_auth_access_user($account) {
+   $access = (user_access('administer users') || $GLOBALS['user']->uid == $account->uid);
+   return (bool) $access;
+}
+
+function facebook_auth_perm() { 
+   return array('administer facebook');
+}
+
+function facebook_auth() {
+   global $user;
+   $api_key = variable_get('facebook_apikey', '');
+   $secret = variable_get('facebook_secretkey', '');
+   // initiate class
+   $facebook = @new Facebook($api_key, $secret);
+   $u = @$facebook->require_login();
+   # http://developers.facebook.com/documentation.php?v=1.0&method=users.getInfo
+   if (@$facebook->api_client->error_code) {
+     return t('Unable to load profile from facebook');
+   }
+   $info = @$facebook->api_client->users_getInfo($u, array('first_name', 'last_name'));
+   $username = $info[0]['first_name'] .' '. $info[0]['last_name'];
+
+   // user should be authenticated by Facebook now
+   $account = user_external_load($u .'@facebook');
+   if ($user->uid && $account) {
+     return t('Account has already been associated with an account.');
+   }
+   else if ($user->uid && !$account) {
+     return drupal_get_form('facebook_auth_user_assoc');
+   }
+
+   // If we don't have a user, register them
+   if (!$account->uid) {
+     $user_default = array(
+       'name' => $username,
+       'pass' => user_password(),
+       'init' => db_escape_string($username),
+       'status' => 1,
+       'authname_facebook_auth' => $u .'@facebook',
+     );
+     $user_default['roles'][DRUPAL_AUTHENTICATED_RID] = 'authenticated user';
+
+     $user = user_save('', $user_default);
+     watchdog('user', 'new user: '. $user->name .' (FB)', l(t('edit user'), 'admin/user/edit/'. $user->uid));
+     if (($user->uid) && ($user->uid > 0)) {
+       drupal_goto('user/'. $user->uid .'/edit');
+     }
+   }
+   else {
+     $user = $account;
+   }
+
+   // final check
+   if ($user->uid && $user->uid > 0) {
+     drupal_set_message('Logged in with Facebook as '. $user->name .'.');
+     return drupal_goto('<front>');
+   }
+   # Its not going to get here if all goes well
+   # TODO: add some error handling here if it fails everything else
+   $page_content = '<H1>Hello '. $username .'</H1>';
+   return $page_content;
+}
+
+function facebook_auth_user($op, &$edit, &$account, $category = NULL) {
+    if ($op == 'logout') {
+        $count = db_result(db_query("SELECT count(*) FROM {authmap} WHERE module='facebook_auth' AND uid=%d", $account->uid));
+        if ($count) {
+            $api_key = variable_get('facebook_apikey', '');
+            $secret = variable_get('facebook_secretkey', '');
+            // initiate class
+            $facebook = @new Facebook($api_key, $secret);
+            $facebook->expire_session();
+        }
+    }
+}
+
+
+function facebook_auth_admin($form_state) {
+   $form = array();
+
+   $form['facebook_apikey'] = array(
+     '#type' => 'textfield',
+     '#title' => t('API key'),
+     '#default_value' => variable_get('facebook_apikey', ''),
+   );
+   $form['facebook_secretkey'] = array(
+     '#type' => 'textfield',
+     '#title' => t('Secret key'),
+     '#default_value' => variable_get('facebook_secretkey', ''),
+   );
+   $form['facebook_auth_enable_loginblock'] = array(
+     '#type' => 'checkbox',
+     '#title' => t('Show button in login block'),
+     '#description' => t('Enable if you want to include a button to login with facebook under the normal login forum.'),
+     '#default_value' => variable_get('facebook_auth_enable_loginblock', FALSE),
+   );
+
+   return system_settings_form($form);
+}
+
+/**
+ * Implementation of hook_form_alter : adds Facebook login to the login forms.
+ */
+function facebook_auth_form_alter(&$form, $form_state, $form_id) {
+   $api_key = variable_get('facebook_apikey', '');
+   $secret = variable_get('facebook_secretkey', '');
+   if (!$secret || !$api_key) {
+       return; 
+   }
+   if (!variable_get('facebook_auth_enable_loginblock', FALSE)) { 
+       return; 
+   }
+   if ($form_id == 'user_login_block' || $form_id == 'user_login') {
+     $img = theme('image', 
+             variable_get('facebook_auth_image', 'http://static.ak.facebook.com/images/devsite/facebook_login.gif'),
+             t('Login to facebook'), t('Login to facebook'), NULL, FALSE
+         );
+     $form['facebook_link'] = array(
+       '#type' => 'markup',
+       '#value' => l($img, 'facebook', array('query' => 'destination='. $_GET['q'], 'html' => TRUE)),
+     );
+   }
+   return $form;
+}
+
+function facebook_auth_block($op = 'list', $delta = 0, $edit = array()) {
+   global $user;
+   if ($op == 'list') {
+     $blocks[0] = array(
+       'info' => t('Facebook Login Button'),
+       'weight' => 0,
+       'enabled' => 0, 
+       'region' => 'left'
+     );
+     return $blocks;
+   }
+   else if ($op == 'view') {
+     switch ($delta) {
+     case 0:
+       if ($user && $user->uid) { 
+           return; 
+       }
+       $image = theme('image',
+                variable_get('facebook_auth_image', 'http://static.ak.facebook.com/images/devsite/facebook_login.gif'),
+                t('Login to facebook'), t('Login to facebook'), NULL, FALSE
+            );
+       $block = array(
+         'subject' => t('Login with facebook'),
+         'content' => l($image, 'facebook', array('query' => 'destination='. $_GET['q'], 'html' => TRUE)),
+       );
+       break;
+     }
+     return $block;
+   }
+} 
+
+function facebook_auth_user_assoc() {
+   global $user;
+   $api_key = variable_get('facebook_apikey', '');
+   $secret = variable_get('facebook_secretkey', '');
+   // initiate class
+   $facebook = @new Facebook($api_key, $secret);
+   $u = @$facebook->require_login();
+   $info = @$facebook->api_client->users_getInfo($u, array('first_name', 'last_name'));
+   $username = $info[0]['first_name'] .' '. $info[0]['last_name'];
+
+   $form = array();
+   $form['fb_uid'] = array('#type' => 'value', '#value' => $u);
+   return confirm_form(
+     $form,
+     t('Are you sure you want to link %fbname to %username?', array('%fbname' => $username, '%username' => $user->name)),
+     '<front>', // Not sure what to provide here
+     NULL,
+     t('Link'),
+     t('Cancel')
+   );
+}
+
+function facebook_auth_user_assoc_submit($form, &$form_state) {
+   global $user;
+   user_save($user, array('auth_facebook_auth' => $form_state['values']['fb_uid'] .'@facebook' ), '');
+   $form_state['redirect'] = 'user/'. $user->uid .'/edit';
+}
+
+function facebook_auth_user_identities($account) {
+   $header = array(t('Facebook'), t('Operations'));
+   $rows = array();
+
+   $result = db_query("SELECT * FROM {authmap} WHERE module='facebook_auth' AND uid=%d", $account->uid);
+   while ($identity = db_fetch_object($result)) {
+     list($uid) = explode('@', $identity->authname);
+     $rows[] = array(
+             l($uid, 'http://www.facebook.com/profile.php?id='. $uid), 
+             l(t('Delete'), 'user/'. $account->uid .'/facebook_auth/delete/'. $identity->aid)
+         );
+   }
+
+   $output = theme('table', $header, $rows);
+   $output .= l(
+         theme('image', 
+            variable_get('facebook_auth_image', 'http://static.ak.facebook.com/images/devsite/facebook_login.gif'),
+            t('Login to facebook'), t('Login to facebook'), NULL, FALSE
+         ),
+         'facebook', 
+         array(
+            'query' => 'destination='. $_GET['q'],
+            'html' => TRUE,
+         )
+      );
+   return $output;
+}
+
+function facebook_auth_user_delete($account, $aid = 0) {
+  db_query("DELETE FROM {authmap} WHERE uid=%d AND aid=%d AND module='facebook_auth'", $account->uid, $aid);
+  if (db_affected_rows()) {
+   drupal_set_message(t('Facebook association deleted.'));
+  }
+  drupal_goto('user/'. $account->uid .'/facebook_auth');
+}

@@ -1,0 +1,21 @@
+/* $Id: baseline-rtl.css,v 1.1.1.7 2009/02/05 16:45:38 gibbozer Exp $ */
+
+/**
+ * You may not need to edit this file!
+ * If you really want to override default layout and style
+ * you can add your style in the "custom.css" file
+ * then activate it in the theme settings page.
+ * (/admin/build/themes/settings/colourise)
+ */
+
+ol {
+  padding-left: 0;
+  padding-right: 1.5em;
+  margin-left: 0;
+  margin-right: 0.5em;
+}
+
+ul {
+  padding-left: 0;
+  padding-right: 1.5em;
+}

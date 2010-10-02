@@ -1,0 +1,12 @@
+; $Id: facebook_auth.info,v 1.2.4.1 2008/02/18 06:40:45 halkeye Exp $
+name = Facebook
+description = Enables loging in through one touch facebook logins
+package = Auth
+core = 6.x
+
+; Information added by drupal.org packaging script on 2008-12-13
+version = "6.x-1.1"
+core = "6.x"
+project = "facebook_auth"
+datestamp = "1229204412"
+

@@ -1,0 +1,45 @@
+/* $Id: ttm-help-icon.css,v 1.1 2009/07/17 13:35:42 rcrowther Exp $ */
+
+.ttm-help-link-large span, .ttm-help-link span {
+  display: none;
+}
+
+.advanced-help-title-large{
+  font-size:14px;
+    /*margin of at least 1px blocks scrollbars in Firefox*/
+  margin:1px;
+}
+.ttm-help-link-large{
+  background:transparent url(../misc/help_large.png) no-repeat top left;
+  display:block;
+  width:24px;
+  height:24px;
+  /*margin of at least 1px blocks scrollbars in Firefox*/
+  margin:6px 1px 1px;
+  padding:0px;
+}
+
+.ttm-help-link{
+  background:transparent url(../misc/help.png) no-repeat top left;
+  display:block;
+  width:12px;
+  height:12px;
+  /*margin of at least 1px blocks scrollbars in Firefox*/
+  margin:2px 1px 1px;
+  padding:0px;
+}
+
+.ttm-help-link-large:hover {
+  background-position: 0px -24px;
+}
+.ttm-help-link:hover {
+  background-position: 0px -12px;
+}
+
+.ttm-fright {
+  float:right;
+}
+
+.ttm-fleft {
+  float:left;
+}

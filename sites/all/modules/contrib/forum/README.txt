@@ -1,0 +1,1 @@
+The forum installation profile is a profile that automatically creates the necessary content types, views, and rules for a Drupal-based forum.  I'll be looking to extend this functionality, so please feel free to make suggestions in the issue queue.

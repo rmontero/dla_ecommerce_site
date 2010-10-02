@@ -1,0 +1,12 @@
+; $Id: googtube.info,v 1.2.2.1 2009/03/14 00:58:40 alexandreracine Exp $
+name = Googtube
+description = "Youtube and Google Video links are automatically converted into embedded videos."
+core = 6.x
+
+
+; Information added by drupal.org packaging script on 2010-03-06
+version = "6.x-1.1"
+core = "6.x"
+project = "googtube"
+datestamp = "1267836607"
+

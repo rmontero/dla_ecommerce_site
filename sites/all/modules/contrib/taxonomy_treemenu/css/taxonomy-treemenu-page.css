@@ -1,0 +1,49 @@
+/* $Id: taxonomy-treemenu-page.css,v 1.1 2009/09/26 21:53:11 rcrowther Exp $ */
+
+/* Rather overwrought, as it is a near straight copy of the Drupal handling, for further work. */
+/*
+.breadcrumbs {
+padding-bottom:0.5em;
+}
+
+#wrapper #container #breadcrumbs-container .breadcrumbs, #wrapper #container .breadcrumbs a {
+color:#529AD6;
+}
+
+#wrapper #container .breadcrumbs {
+font-size:0.92em;
+}
+
+#wrapper #container #breadcrumbs-container  {
+left:35px;
+position:absolute;
+top:15px;
+z-index:3;
+}
+*/
+
+/* Copy of .block */
+/*
+.page-block {
+ margin:0pt 0pt 1.5em;
+}
+*/
+
+/* Space treemenus from titles and descriptions, over and above .content.  */
+.treemenu {
+ padding:0.5em 0;
+}
+
+
+/* Copy of .taxonomy-term-description with reduced bottom margin, Garland orig. 20px. */
+.taxonomy-treemenu-description {
+ margin:5px 0pt 5px;
+}
+
+/* Space blocks of menu on a page. Currently unused. */
+/* Copy of .node without lower border */
+.page-block-treemenu {
+ margin:0pt -26px 1.5em;
+ padding:1.5em 26px;
+}
+

@@ -1,0 +1,26 @@
+div#header,
+div#footer,
+div#sidebar-right,
+div#postcontent,
+div.breadcrumb,
+div#main div.tabs,
+fieldset,
+div.meta div.links {
+  display: none;
+}
+
+div#wrapper {
+  background: none;
+  margin: 0;
+  width:100%;
+}
+
+div#main {
+  float: none;
+  padding: 0;
+  width: 100%;
+}
+
+div.node-page-view {
+  margin: 0 0 30px;
+}

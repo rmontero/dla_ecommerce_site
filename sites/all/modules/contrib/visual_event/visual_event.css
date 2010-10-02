@@ -1,0 +1,18 @@
+/* $Id: visual_event.css,v 1.1 2009/10/30 17:33:51 enzo Exp $ */ 
+@CHARSET "UTF-8";
+#visual_event-toggle {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  padding: 3px 5px;
+  background: #fff;
+  color: #008;
+  cursor: pointer;
+  z-index: 10002;
+  font-size: 13px;
+  background-color: #333;
+  opacity: .8;
+  color: #FFF;
+  border-top: 1px solid #000;
+  border-right: 1px solid #000;
+}

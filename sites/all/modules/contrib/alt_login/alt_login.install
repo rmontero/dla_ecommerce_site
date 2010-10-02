@@ -1,0 +1,87 @@
+<?php
+// $Id: alt_login.install,v 1.6 2007/11/26 00:07:35 thehunmonkgroup Exp $
+
+/**
+ * Implementation of hook_install().
+ */
+function alt_login_install() {
+  $ret = drupal_install_schema('alt_login');
+
+  $failed = array();
+  foreach ($ret as $query) {
+    if (!$query['success']) {
+      $failed[] = $query['query'];
+    }
+  }
+  if (empty($failed)) {
+    drupal_set_message(t('Alternate login module installed successfully.'));
+  }
+  else {
+    drupal_set_message(t('Table installation for the Alternate login module was unsuccessful. The following queries failed: !queries', array('!queries' => theme('item_list', $failed))), 'error');
+  }
+}
+
+/**
+* Implementation of hook_schema().
+*/
+function alt_login_schema() {
+
+  $schema['alt_login'] = array(
+    'description' => t('Storage table for alternate user login names.'),
+    'fields' => array(
+      'uid' => array(
+        'description' => t('The uid of the user.'),
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'alt_login' => array(
+        'description' => t('The alternate login name for the user.'),
+        'type' => 'varchar',
+        'length' => 60,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+    ),
+    'primary key' => array('uid'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implementation of hook_update_1().
+ *
+ */
+function alt_login_update_1() {
+  $ret = array();
+  // Getting rid of alt_login var from users data column.
+  $users = db_query('SELECT uid FROM {users}');
+  while ($user = db_fetch_object($users)) {
+    $data = unserialize(db_result(db_query('SELECT data FROM {users} WHERE uid = %d', $user->uid)));
+    unset($data['alt_login']);
+    $data = serialize($data);
+    db_query("UPDATE {users} SET data = '%s' WHERE uid = %d", $data, $user->uid);
+  }
+
+  return $ret;
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function alt_login_uninstall() {
+
+  // Drop tables.
+  drupal_uninstall_schema('alt_login');
+
+  // Drop variables.
+  $variables = array(
+    'alt_login_user_registration',
+  );
+  foreach ($variables as $variable) {
+    variable_del($variable);
+  }
+
+  drupal_set_message(t('Alternate login module uninstalled successfully.'));
+}

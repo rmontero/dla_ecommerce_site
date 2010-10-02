@@ -1,0 +1,74 @@
+<?php
+// $Id: suy.module,v 1.1.2.1 2009/05/18 07:36:28 caktux Exp $
+
+/**
+ * @file
+ * Display's a modal dialog to IE6 users prompting to upgrade to a better or newer browser.
+ */
+
+/**
+ * Implementation of hook_help().
+ */
+function suy_help($path, $arg) {
+  switch ($path) {
+    case 'admin/settings/suy':
+      return t('Display\'s a modal dialog to IE6 users prompting to upgrade to a better or newer browser.');
+
+    case 'admin/help#suy':
+      $output = '';
+      $output .= '<p>' . t('Using conditional comments, display\'s a modal dialog to IE6 users prompting to upgrade to a better or newer browser.') . '</p>';
+      return $output;
+  }
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function suy_menu() {
+  $items = array();
+  $items['admin/settings/suy'] = array(
+    'title' => 'SUY',
+    'description' => 'Adjust suy settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('suy_settings'),
+    'access arguments' => array('administer site configuration'),
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_init().
+ */
+function suy_init() {
+
+  $settings = array(
+    'suy_minimum' => variable_get('suy_minimum', 7),
+  );
+  drupal_add_js(array('suy' => $settings), 'setting', 'footer', true);
+}
+
+/**
+ * Form builder function for module settings.
+ */
+function suy_settings() {
+  $form['suy_minimum'] = array(
+    '#type' => 'textfield',
+    '#title' => t('lte IE x'),
+    '#default_value' => variable_get('suy_minimum', 7),
+    '#description' => t('The "lower than or equal to" version of Internet Explorer to display the notification to.'),
+  );
+  $form = system_settings_form($form);
+
+  return $form;
+}
+
+function suy_preprocess_page(&$vars) {
+  $path = base_path() . drupal_get_path('module', 'suy');
+
+  $vars['suy'] = '
+    <!--[if lte IE ' . variable_get('suy_minimum', 7) . ']>
+      <script type="text/javascript" src="' . $path . '/js/ui.dialog.js"></script>
+      <script type="text/javascript" src="' . $path . '/js/jquery.suy.js"></script>
+      <link type="text/css" rel="stylesheet" media="all" href="' . $path . '/css/suy.css" />
+    <![endif]-->'."\n";
+}

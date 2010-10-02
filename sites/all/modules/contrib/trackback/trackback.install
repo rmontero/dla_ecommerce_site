@@ -1,0 +1,244 @@
+<?php
+// $Id: trackback.install,v 1.8.2.1 2009/05/08 16:32:31 thepanz Exp $
+
+/**
+ * Implementation of hook_install().
+ */
+function trackback_install() {
+  // Create tables.
+  drupal_install_schema('trackback');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function trackback_uninstall() {
+  // Remove tables.
+  drupal_uninstall_schema('trackback');
+  if (module_exists('spam')) {
+    db_query("DELETE FROM {spam_tracker} WHERE source='trackback'");
+  }
+
+  // Clear any variables that might be in use.
+  $variables = array(
+    'trackback_moderation',
+    'trackback_auto_detection_enabled',
+    'trackback_display_number',
+    'trackback_spam_filter',
+    'trackback_reject_oneway',
+    'trackback_link_only',
+    'trackback_view',
+  );
+  
+  // Retrieving per-node trackback setting.
+  foreach (array_keys(node_get_types()) as $type) {
+    $variables[] = 'trackback_'. $type;
+  }
+  
+  // Actually deleting variables.
+  foreach ($variables as $variable) {
+    variable_del($variable);
+  }
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function trackback_schema() {
+  $schema['trackback_received'] = array(
+    'description' => t('Stores the received trackbacks.'),
+    'fields' => array(
+      'trid'    => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => t('Primary Key: Unique trackback ID.')
+      ),
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => t('The {node}.nid by which this trackback was received.')
+      ),
+      'created' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => t('The Unix timestamp when this trackback was received.')
+      ),
+      'site' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => t('The IP address that sent this trackback.')
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 60,
+        'not null' => TRUE,
+        'description' => t('The sender site name of this trackback.')
+      ),
+      'subject' => array(
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'description' => t('The title of the trackbacking post.')
+      ),
+      'url' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => t('The URL of the trackbacking post.')
+      ),
+      'excerpt' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => t('The excerpt of the trackbacking post.')
+      ),
+      'status' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => t('Boolean indicating whether the trackback is published.')
+      )
+    ),
+    'indexes' => array('nid' => array('nid')),
+    'primary key' => array('trid')
+  );
+
+  $schema['trackback_sent'] = array(
+    'description' => t('Stores the sent trackbacks.'),
+    'fields' => array(
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => t('The {node}.nid that sent the trackback.')
+      ),
+      'url' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => t('The trackback URL.')
+      ),
+      'successful' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'size' => 'tiny',
+        'description' => t('Boolean indicating whether the trackback has been successful.')
+      )
+    ),
+    'primary key' => array('nid', 'url')
+  );
+
+  $schema['trackback_node'] = array(
+    'description' => t('Stores information about trackback for {node}s.'),
+    'fields' => array(
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => t('The {node}.nid of the node.')
+      ),
+      'awaiting_cron' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => t('Boolean indicating whether the auto-detection should be run on cron.')
+      ),
+      'can_receive' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => t('Boolean indicating whether the node can receive trackbacks.')
+      )
+    ),
+    'primary key' => array('nid')
+  );
+
+  return $schema;
+}
+
+function trackback_update_1() {
+  return _system_update_utf8(array('trackback_received', 'trackback_sent', 'trackback_node'));
+}
+
+function trackback_update_2() {
+  $n = variable_get('trackbacks_display_number', 10);
+  if ($n != 10) {
+    variable_set('trackback_display_number', $n);
+  }
+  variable_del('trackbacks_display_number');
+  $ret = array();
+  if ($GLOBALS['db_type'] == 'pgsql') {
+    $ret[] = update_sql("CREATE SEQUENCE {trackback_received}_trid_seq");
+  }
+  return $ret;
+}
+
+function trackback_update_3() {
+  $ret = _system_update_utf8(array('trackback_received', 'trackback_sent', 'trackback_node'));
+  if ($GLOBALS['db_type'] == 'pgsql') {
+    $ret[] = update_sql("CREATE INDEX {trackback_received}_nid_idx ON {trackback_received}(nid)");
+  }
+  return $ret;
+}
+
+function trackback_update_4() {
+  $decode = array(
+    '&amp;' => '&',
+    '&lt;' => '<',
+    '&gt;' => '>',
+    '&quot;' => '"',
+    '&#039;' => "'"
+  );
+  $r = array();
+  $result = db_query('SELECT trid, url FROM {trackback_received}');
+  while ($tb = db_fetch_object($result)) {
+    if (strpos($tb->url, '&') !== FALSE) {
+      $r[$tb->trid] = strtr($tb->url, $decode);
+    }
+  }
+  $ret = array();
+  foreach ($r as $trid => $url) {
+    $ret[] = update_sql("UPDATE {trackback_received} SET url='". db_escape_string($url) ."' WHERE trid=". $trid);
+  }
+  return $ret;
+}
+
+function trackback_update_5() {
+  $ret = array();
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+      db_drop_primary_key($ret, 'trackback_received');
+      db_change_field($ret, 'trackback_received', 'trid', 'trid', array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE), array('primary key' => array('trid')));
+      $trid = db_result(db_query('SELECT MAX(trid) FROM {trackback_received}'));
+      $ret[] = update_sql('ALTER TABLE {trackback_received} AUTO_INCREMENT='. ($trid + 1));
+      db_change_field($ret, 'trackback_received', 'name', 'name', array('type' => 'varchar', 'length' => 60, 'not null' => TRUE));
+      db_drop_primary_key($ret, 'trackback_node');
+      db_change_field($ret, 'trackback_node', 'nid', 'nid', array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE), array('primary key' => array('nid')));
+      break;
+
+    case 'pgsql':
+      db_drop_primary_key($ret, 'trackback_received');
+      $ret[] = update_sql('DROP SEQUENCE {trackback_received}_trid_seq');
+      db_change_field($ret, 'trackback_received', 'trid', 'trid', array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE), array('primary key' => array('trid')));
+      $ret[] = update_sql('SELECT SETVAL({trackback_received}_trid_seq, (SELECT MAX(trid) FROM {trackback_received}))');
+      db_drop_index($ret, 'trackback_received', 'nid');
+      db_change_field($ret, 'trackback_received', 'nid', 'nid', array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE), array('indexes' => array('nid' => array('nid'))));
+      db_change_field($ret, 'trackback_received', 'status', 'status', array('type' => 'int', 'unsigned' => TRUE, 'default' => 0, 'size' => 'tiny'));
+      db_drop_primary_key($ret, 'trackback_sent');
+      db_change_field($ret, 'trackback_sent', 'nid', 'nid', array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE), array('primary key' => array('nid', 'url')));
+      db_drop_primary_key($ret, 'trackback_node');
+      db_change_field($ret, 'trackback_node', 'nid', 'nid', array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE), array('primary key' => array('nid')));
+      db_change_field($ret, 'trackback_node', 'awaiting_cron', 'awaiting_cron', array('type' => 'int', 'not null' => TRUE, 'default' => 0, 'size' => 'tiny'));
+      db_change_field($ret, 'trackback_node', 'can_receive', 'can_receive', array('type' => 'int', 'not null' => TRUE, 'default' => 0, 'size' => 'tiny'));
+      break;
+  }
+  return $ret;
+}

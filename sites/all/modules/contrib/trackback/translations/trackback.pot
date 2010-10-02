@@ -1,0 +1,551 @@
+# $Id: trackback.pot,v 1.1.2.1 2008/02/16 16:47:02 zorac Exp $
+#
+# LANGUAGE translation of Drupal (trackback)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  trackback.admin.inc,v 1.1 2007/12/06 17:53:49 zorac Exp
+#  trackback.info,v 1.2 2007/07/12 17:25:08 zorac Exp
+#  trackback.install,v 1.8 2007/11/21 16:48:11 zorac Exp
+#  trackback.module,v 1.75.2.1 2008/01/31 17:25:38 zorac Exp
+#  trackback.ping.inc,v 1.1 2007/12/06 17:53:49 zorac Exp
+#  trackback.spam.inc,v 1.1 2007/12/06 17:53:49 zorac Exp
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2008-02-17 01:44+0900\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: sites/all/modules/trackback/trackback.admin.inc:7
+msgid ""
+"The trackback module allows users to give a blog post a contextual "
+"link to another. A context is made because the trackbacking poster "
+"is, in theory, writing about something mentioned on another blogger's "
+"trackbacked post.  Using the trackback URL accompanying each post, "
+"another website can send a ping to your website. Once received, the "
+"trackback will show up on the trackback page accompanying the post.  "
+"It also includes auto-discovery, spam moderation queues, and the "
+"ability to manually ping another site."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:8
+msgid ""
+"If trackback autodisovery is enabled on your website, someone need "
+"only visit your post via a link from another website post to have "
+"trackback <em>discover</em> the linking site and create the "
+"trackback. Trackback auto-discovery also works internally within a "
+"website, automatically creating connections between pages which link "
+"to each other. To manually send a ping to another site, edit your "
+"post and use the trackback URL field at the bottom of the edit page "
+"to submit the trackback URL for the post on the other site. Once you "
+"enter submit, your website will ping the other site for you. With "
+"trackback autodiscovery enabled, your site will attempt to do this "
+"automatically without your intervention."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:9
+msgid ""
+"To enable the moderation queue, go to the administer trackbacks page "
+"and select the configure tab. To view, approve, or delete trackbacks "
+"awaiting moderation, go to the administer trackbacks page and select "
+"the approval queue.  To administer the trackback settings for a "
+"particular content type go to that content types administration page."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:10
+msgid ""
+"For more information please read the configuration and customization "
+"handbook <a href=\"@trackback\">Trackback page</a>."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:21
+msgid "Unpublish the selected trackbacks"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:24
+msgid "Publish the selected trackbacks"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:27
+msgid "Mark the selected trackbacks as spam"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:28
+msgid "Mark the selected trackbacks as not spam"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:30
+msgid "Delete the selected trackbacks (no confirmation)"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:35
+msgid "Update options"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:45
+msgid "Update"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:75;212
+msgid "Published"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:75;212
+msgid "Not published"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:78;124
+#: sites/all/modules/trackback/trackback.module:312
+msgid "Spam"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:78
+msgid "Not Spam"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:82
+#: sites/all/modules/trackback/trackback.module:267
+msgid "edit"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:83
+#: sites/all/modules/trackback/trackback.module:272
+msgid "delete"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:96
+msgid "Please select one or more trackbacks to perform the update on."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:109
+msgid "The update has been performed."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:116
+msgid "Subject"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:117
+msgid "Author"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:118
+msgid "Host"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:121;210
+msgid "Status"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:127
+msgid "Time"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:128
+msgid "Operations"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:143
+msgid "No trackbacks available."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:151
+msgid "Auto-detection"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:153;166;173
+#: sites/all/modules/trackback/trackback.module:107
+msgid "Disabled"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:153;166;173
+#: sites/all/modules/trackback/trackback.module:107
+msgid "Enabled"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:153
+msgid "Run auto-detection on cron"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:154
+msgid ""
+"If auto-detection is enabled, each URL in any posted content (whether "
+"in textile, link, or plain-text form) will be checked for a trackback "
+"URL upon submission. For each URL in the body of the posted content, "
+"trackback will check to see if that URL accepts trackbacks from other "
+"sites. If a URL accepts trackbacks, trackback will ping the trackback "
+"URL found on that page if one has been posted at that URL.<br>*note: "
+"This has the potential to take a very long time depending on the "
+"amount of links you have in your posts. Using the 'Run auto-detection "
+"on cron' option delays the most time consuming part of the process to "
+"when cron is run on the site. This speeds perfomance when editing and "
+"creating content, but delays trackbacks until cron is run."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:158
+msgid "Link only"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:160
+msgid "If checked, auto-detection will check link only."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:164
+msgid "Trackback moderation"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:167
+msgid ""
+"Enabling moderation forces every received trackback to be approved "
+"before it will appear on your site. The moderation queue can then be "
+"viewed on the !linked_page."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:167
+msgid "trackback administration page"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:171
+msgid "Reject one-way trackbacks"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:174
+msgid ""
+"If enabled, trackbacks that the sender page does not refer to your "
+"site will be rejected."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:178
+msgid "Location of received trackbacks"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:180
+msgid "Display below post"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:180
+msgid "Display on separate page"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:180
+msgid "Display in block"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:188
+msgid "Are you sure you want to delete the trackback %title?"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:189
+msgid "This action cannot be undone."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:189
+msgid "Delete"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:189
+msgid "Cancel"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:214
+msgid "Save"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:216
+msgid "This trackback is in response to: "
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:227
+msgid "The trackback is now published."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.admin.inc:231
+msgid "The trackback was unpublished."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.info:0
+msgid "Trackback"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.info:0
+msgid ""
+"Allow for sending and receiving TrackBacks, which is a way for sites "
+"to notify another that they have commented on a post."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.install:38
+msgid "Stores the received trackbacks."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.install:44
+msgid "Primary Key: Unique trackback ID."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.install:50
+msgid "The {node}.nid by which this trackback was received."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.install:55
+msgid "The Unix timestamp when this trackback was received."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.install:61
+msgid "The IP address that sent this trackback."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.install:67
+msgid "The sender site name of this trackback."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.install:73
+msgid "The title of the trackbacking post."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.install:79
+msgid "The URL of the trackbacking post."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.install:85
+msgid "The excerpt of the trackbacking post."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.install:92
+msgid "Boolean indicating whether the trackback is published."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.install:100
+msgid "Stores the sent trackbacks."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.install:106
+msgid "The {node}.nid that sent the trackback."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.install:113
+msgid "The trackback URL."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.install:119
+msgid "Boolean indicating whether the trackback has been successful."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.install:126
+msgid "Stores information about trackback for {node}s."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.install:132
+msgid "The {node}.nid of the node."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.install:139
+msgid ""
+"Boolean indicating whether the auto-detection should be run on cron."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.install:146
+msgid "Boolean indicating whether the node can receive trackbacks."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:43
+msgid "from %sitename on @date"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:60
+msgid "Trackback URL for this post:"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:106;117;422;459;285;327;354
+msgid "Trackbacks"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:109
+msgid "Enable trackbacks for this node type."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:122
+msgid "Allow Trackbacks"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:124
+msgid "Allow other posts to send trackbacks to this content."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:128
+msgid "Send Trackbacks"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:132
+msgid "Enter one URL per line for each trackback you wish to send."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:154
+msgid "Successful URLs"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:163
+msgid "Unsuccessful URLs"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:166
+msgid ""
+"Attempts to ping these URLs with this post have failed. Mark a check "
+"next to the trackback URLs you wish to retry for this post."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:216
+msgid "The trackback url %url is not a valid url."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:420;450
+msgid "Recent trackbacks"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:433
+msgid "Number of trackbacks to display"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:436
+msgid "How many trackbacks are displayed in the recent trackbacks block"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:448
+msgid "%time ago"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:504;511
+#: sites/all/modules/trackback/trackback.ping.inc:13
+msgid "view"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:504;511;517;0
+#: sites/all/modules/trackback/trackback.ping.inc:13
+msgid "trackback"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:504
+msgid "Published trackback %subject."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:511
+msgid "Unpublished trackback %subject."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:517
+msgid "Deleted trackback %subject. The trackback was posted to !link."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:256
+msgid "1 trackback"
+msgid_plural "@count trackbacks"
+msgstr[0] ""
+msgstr[1] ""
+
+#: sites/all/modules/trackback/trackback.module:366
+msgid "administer trackbacks"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:286
+msgid ""
+"List and edit site trackbacks and the trackback moderation queue."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:295
+msgid "List"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:302
+msgid "Published trackbacks"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:307
+msgid "Approval queue"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:319
+msgid "Settings"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:336
+msgid "Moderate trackback"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.module:345
+msgid "Delete trackback"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.ping.inc:29
+msgid "Missing TrackBack url."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.ping.inc:34
+msgid "Could not retrieve the sender page."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.ping.inc:37
+msgid "The sender page does not refer to recipient site."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.ping.inc:13
+msgid "Added trackback %subject."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.spam.inc:25;71
+msgid "spam_delete_trackback: deleted trackback \"%subject\"."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.spam.inc:36
+msgid "Filter trackbacks"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.spam.inc:38
+msgid ""
+"Enable this option to filter new trackbacks as they are posted, "
+"determining whether or not they are spam."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.spam.inc:59
+msgid "spam_publish_trackback: published trackback \"%subject\"."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.spam.inc:65
+msgid "spam_unpublish_trackback: unpublished trackback \"%subject\"."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.spam.inc:86
+msgid "trackback manually marked as spam"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.spam.inc:92
+msgid "trackback manually marked as not spam"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.spam.inc:114
+msgid "mark as spam"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.spam.inc:118
+msgid "mark as not spam"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.spam.inc:138
+msgid "not spam"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.spam.inc:146;85;91
+msgid "spam"
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.spam.inc:85
+msgid "Spam: marked trackback %subject as spam."
+msgstr ""
+
+#: sites/all/modules/trackback/trackback.spam.inc:91
+msgid "Spam: marked trackback %subject as not spam."
+msgstr ""

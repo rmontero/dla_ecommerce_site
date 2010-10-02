@@ -1,0 +1,12 @@
+; $Id: fbstatus.info,v 1.1.4.1 2008/02/14 00:09:10 yelvington Exp $
+name = "Facebook Status"
+description = "Fetch Facebook status and provide a block."
+core = 6.x
+php = 5.1
+
+; Information added by drupal.org packaging script on 2009-02-22
+version = "6.x-1.2"
+core = "6.x"
+project = "fbstatus"
+datestamp = "1235327716"
+

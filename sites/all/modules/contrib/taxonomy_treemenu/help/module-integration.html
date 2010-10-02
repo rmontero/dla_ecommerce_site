@@ -1,0 +1,52 @@
+<!-- $Id: module-integration.html,v 1.2 2009/09/26 21:53:11 rcrowther Exp $ -->
+
+
+<h4>Views</h4>
+<p>
+See <a href="&topic:taxonomy_treemenu/views-integration&">views integration</a>
+</p>
+
+
+<h3>Site Map, Menu Block, and other modules which offer to display preconstructed menus</h3>
+<p>
+Taxonomy Treemenu renders it's terms as Drupal links.
+Therefore the terms of any menu should render perfectly well in any such module.
+Usefulness varies. For example, Sitemap rendering may be useful in the context of a commercial site,
+particulary as Taxonomy Treemenu delivers a full menu, not a simple collection of links.
+Usage with the likes of Menu Block verges on the insane - but you can try... 
+</p>
+<p>
+The node links on treemenus are delivered by a specialist renderer into the menu cache. 
+Therefore, these types of modules can't see them - sorry.
+But node rendering is one of the most popular features of the module, 
+so this issue will not cause us to drop it. 
+</p>
+<p>
+Aside from some specialised rendering, 
+Treemenu offers many of the possibilites of these kinds of modules within it's generalised functionality.
+For example a designer can put a menu into a block, page a menu like this ?q=ttm/[menu-name] and so forth.
+</p>
+
+
+<h3>Taxonomy Redirect</h3>
+<p>
+If you want to push term links through to custom items, without the fuss of a template, this does the job very nicely.
+</p>
+<p>
+*** Warning 6x-1.3. It works well when you do it, but you can't go backwards! 
+If you try to switch redirects off, you'll find any extended URL menus will keep reverting to stock URLs. 
+You'll need SQL I'm afraid, some variant of,
+<pre>
+UPDATE vocabulary SET module='taxonomy' WHERE name= ?;
+</pre>
+or I think you can do the same thing through PHPAdmin
+***
+</p>
+<p>
+Here's the punchline. 
+If you try taking the redirects OFF an extended URL menu, the URLs will revert to stock URLs. 
+Unless you do the SQL fix above.
+</p>
+<p>
+We claim to be blameless for this...
+</p>

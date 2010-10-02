@@ -1,0 +1,259 @@
+<!-- $Id: admin-overview.html,v 1.4 2009/08/26 17:55:54 rcrowther Exp $ -->
+
+
+
+
+<h3>An overview of Taxonomy Treemenu options</h3>
+
+
+<p>
+In tables.
+</p>
+<p>
+INCOMPLETE: a work in progress! *** Probably not correct *** (but a start).
+</p>
+<br/>
+<br/>
+
+For most design purposes the following tables can be reduced to one decision,
+<ul>
+<li>
+If you want some block menus, either rendered as treemenus or through Views, use the default setup (stock Drupal URLs).
+</li>
+<li>
+If you can live with duplicating aliases, not using aliases, or shifting your site entirely to extended URLs, 
+then extended URLs will offer some cool features, such as whole menu styling, multiple breadcrumbs, and backtracking into paged menus.
+</li>
+</ul>
+
+<h3>Menu general options</h3>
+   
+<table>
+<tr class="x-labels">
+  <th>menu type</th>
+  
+  <th>menu on a page</th>
+	<th>expanding menus</th> 
+  <th>show nodes</th>
+  <th>structure nodes in menu</th> 
+  <th>reflect node structure in term lists</th> 
+  <th>reflect node paths in term lists</th>
+
+  <th></th>
+</tr>
+<tr>
+	<td class="declaration"><div class="menu-type">stock URLs</div></td>
+	
+	<td class="yes">yes</td>
+	<td class="no">no</td> 
+	<td class="yes">yes</td>
+	<td class="yes">yes</td>
+	<td class="no">no</td> 	
+	<td class="yes">yes</td>
+		
+	<td class=""></td>	
+</tr>
+<tr>
+	<td class="declaration"><div class="menu-type">menu extended URLs</div></td>
+	
+	<td class="yes">yes</td>
+  <td class="no">no</td>
+	<td class="yes">yes</td>
+	<td class="yes">yes</td>
+	<td class="yes">yes</td>		
+	<td class="almost">almost</td>
+	
+	<td class=""></td>	
+</tr>
+
+</table>
+<ul>
+<li>
+The internal renderer will carry extended URLs in the term list.
+Stock term lists would need a site-wide hook_link_alter().
+</li>
+</ul>
+
+
+
+<h3>Treemenus and other APIs</h3>
+
+For further information on the path alias issue, see
+<a href="&topic:taxonomy_treemenu/custom-urls&">custom URLs</a>
+
+<table>
+<tr class="x-labels">
+  <th>menu type</th>
+  
+  <th>Pathauto and aliases</th>
+	<th>Views</th>
+	<th>Views for menu terms</th>	
+
+  <th></th>
+</tr>
+<tr>
+	<td class="declaration"><div class="menu-type">stock URLs</div></td>
+	
+	<td class="yes">yes</td>
+	<td class="yes">yes</td>
+	<td class="no">no</td>
+	
+	<td class=""></td>	
+</tr>
+<tr>
+	<td class="declaration"><div class="menu-type">menu extended URLs</div></td>
+
+	<td class="with-work">with work</td>
+	<td class="yes">yes</td>
+	<td class="almost">almost</td>
+	
+	<td class=""></td>	
+</tr>
+</table>
+
+<ul>
+<li>
+Views works as usual, but has a (much used) default template which can deliver a treemenu's nodes.
+</li>
+</ul>
+
+<ul>
+<li>
+Pathauto aliases will be need to be duplicated if you use simple paths also on your site.
+</li>
+<li>
+Treemenus can use Views for term paging, but currently only from stock, not extended, URLs.
+</li>
+</ul>
+
+
+
+<h3>Breadcrumbs</h3>
+Building breadcrumbs is more difficult than intuition suggests.
+They become tricky for multiple heirachy menus, see 
+<a href="&topic:taxonomy_treemenu/multiple-hierarchy-ambiguity&">multiple hierarchy ambiguity</a>.
+Even core Drupal builds breadcrumbs by retrieving menu data (a cached 'tree'), and rebuilding.
+So breadcrumb options have some complex interactions.
+
+
+<table>
+<tr class="x-labels">
+  <th>menu type</th>
+    
+  <th>crumb terms</th>
+  <th>crumb nodes</th> 
+  <th>multiple crumbs</th>   
+  <th>block crumb backtrack</th>  
+  <th>page crumb backtrack</th>
+
+  <th></th>
+</tr>
+<tr>
+	<td class="declaration"><div class="menu-type">stock URLs</div></td>
+	
+	<td class="stock">stock</td>	
+	<td class="minimal">minimal</td>
+	<td class="no">no</td>
+	<td class="stock">stock</td>	
+	<td class="no">no</td>
+		
+	<td class=""></td>	
+</tr>
+<tr>
+	<td class="declaration"><div class="menu-type">menu extended URLs</div></td>
+		
+	<td class="almost">almost</td>
+	<td class="almost">almost</td>	
+	<td class="needs-work">with work</td>
+	<td class="yes">yes</td>	
+	<td class="minimal">minimal</td>
+		
+	<td class=""></td>	
+</tr>
+</table>
+
+<ul>
+<li>
+The crumb for terms and nodes is stock, i.e. the taxonomy heirarchy, and nothing. 
+Nodes carry taxonomy data, so a page preprocesser can do some work there (as it could in any Druapl installation).
+</li>
+<li>
+Block crumb backtracking is the taxonomy heirarchy. 
+No understanding of Taxonomy menus (so could get very confused with multiple parentage).
+</li>
+<li>
+Discovering the menu name of a term or node is a heavy recursive operation, so no (though, yes, it is possible).
+</li>
+</ul>
+
+<ul>
+<li>
+Can't crumb terms or nodes on multiple parentage. Crumb will revert to 'home'.
+</li>
+<li>
+Multiple breadcrumbs yes, but a designer needs to redesign the site page template, 
+or there is no area for the breadcrumbs. The stock result is unacceptable.
+</li>
+<li>
+Paged menus have an option to set the crumb to the base menu?
+</li>
+</ul>
+
+
+
+<h3>Various forms of styling</h3>
+
+<table>
+<tr class="x-labels">
+  <th>menu type</th>
+  
+  <th>use the internal term theme</th>   
+  <th>style menus</th>  
+  <th>style terms by taxonomy</th>
+  <th>style nodes by taxonomy</th>
+
+  <th></th>
+</tr>
+<tr>
+	<td class="declaration"><div class="menu-type">stock URLs</div></td>
+	
+	<td class="no">no</td>	
+	<td class="no">no</td>
+	<td class="alternative">alternative</td>
+	<td class="almost">with work</td>
+		
+	<td class=""></td>	
+</tr>
+<tr>
+	<td class="declaration"><div class="menu-type">menu extended URLs</div></td>
+	
+	<td class="yes">yes</td>	
+	<td class="yes">yes</td>
+	<td class="almost">with work</td>
+	<td class="almost">with work</td>
+		
+	<td class=""></td>	
+</tr>
+</table>
+
+
+<ul>
+<li>
+Stock URLs could use the internal theme, but would need hook_link(), hook_term_path(), or some (module driven?) redirection.
+Most folks would probably choose to use Views.
+</li>
+<li>
+Using a page preprocessor, a designer can call taxonomy_treemenu_get_tid_ancestry() to discover term heirarchy.
+</li>
+</ul>
+<ul>
+<li>
+Using a page preprocessor, a designer can call taxonomy_treemenu_get_tid_ancestry() to discover term and node taxonomy.
+</li>
+</ul>
+
+
+<p>
+Credit for blatant theft: Styling lifted from <a href="http://www.quirksmode.org">http://www.quirksmode.org</a>.
+Everything you <em>need</em> to know about browser DOMs and CSS (well, there's also the HTML4 spec and WC3).
+</p>

@@ -1,0 +1,13 @@
+name = ICanLocalize translation service
+description = Localization of content using the ICanLocalize translation service.
+dependencies[] = icl_core
+dependencies[] = icl_content
+dependencies[] = icl_translate
+core = 6.x
+package = Translation Services
+; Information added by drupal.org packaging script on 2010-09-30
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "translation_management"
+datestamp = "1285806135"
+

@@ -1,0 +1,20 @@
+/* $Id: print-rtl.css,v 1.1.2.6 2009/02/05 16:45:38 gibbozer Exp $ */
+
+/**
+ * This file do nothing in the screen monitor
+ * But when users want to print you web page (Command+P or Control+P)
+ * it will remove all unnecessary sections for them
+ * except the main content in a print-out.
+ */
+
+#site-name a {
+  position: relative;
+  top: 0;
+  right: 0; /* LTR */
+}
+
+#slogan {
+  position: relative;
+  top: 0;
+  right: 0; /* LTR */
+}

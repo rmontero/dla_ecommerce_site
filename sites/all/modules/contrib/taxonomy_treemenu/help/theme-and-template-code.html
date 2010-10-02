@@ -1,0 +1,576 @@
+<!-- $Id: theme-and-template-code.html,v 1.3 2009/09/26 21:53:11 rcrowther Exp $ -->
+
+
+<h3>The descendant node titling problem.</h3>
+<p>
+So you decided to use the 'descendant nodes' option, 
+because it mimics a user experience (with auto updating and without a line of custom code)?
+One problem, not unique to us. A URL like
+
+<pre>
+"taxonomy/term/6+98+4+3+75"
+</pre>
+Will generate a title like
+<pre>
+"Bags, Radiators, Basins, Enamel Posters"
+</pre>
+
+
+The reason Drupal does this is because the page must have a unique title for the feed 
+Plus, the programmers may not have anticipated this usage?
+Anyway, ss raised on the issue queue, this is not what a user needs here, they need the parent title.
+</p>
+<p>
+Trimming the titles down to size is not as simple as it seems.
+The rendering is done by Drupal, in the template, and the titles generated in core, 
+so the only official way to get at them is using preprocessors or template code.
+This,
+
+<pre>
+function [themename]_preprocess_page(&$vars) {
+  $q = $_GET['q'];
+  $qa = explode('/', $q);
+  if ($qa[1] == 'term') {
+    $vars['title'] = substr($vars['title'], 0, strpos($vars['title'], ',') );
+  }
+}
+</pre>
+hacks any text away after the first comma (from paged term titles).
+</p>
+<p>
+If you'd like something more sophisticated, and you're using Views,
+BayouBill's default View will apparently do the trick. 
+See <a href="&topic:taxonomy_treemenu/views-integration&">Views integration</a>, or just load it up and have a go.
+Also, Taxonomy Treemnu's internal, unstyled, term template does not suffer from this problem.
+</p>
+
+
+<h3>Fine-grained control of templates.</h3>
+<p>
+<em>***BIG WARNING:***</em> In a non-modified Drupal installation 
+(you can use the Devel module to switch this off, but...), 
+any code which manipulates preprocessors and theming needs a cache refresh and relevant page refresh 
+before you see anything.
+</p>
+<p>
+If you try the code on this page,<br>
+<em>EMPTY CACHE AND REFRESH TEST PAGES</em>
+</p>
+
+<h4>What they do</h4>
+<p>
+These functions generate template suggestions 
+which give a designer very close control over templating in Taxonomy Treemenus.
+
+</p>
+<p>
+There is a down side to using this on this page. 
+Any generalized preprocessing involves extra function calls and probably code filtering.
+Finally, this could become a performance issue.
+Also, the code will generate huge numbers of suggestions on deep or complex multiple menus. 
+This may become the critical performace factor?
+</p>
+
+<h4>Where to put the code</h4>
+<p>
+These functions work on data either from external functions or provided by base templates.
+So they can be put anywhere within the preprocessing chain.
+</p>
+<p>
+There is a performance issue, not critical, but best avoided, 
+when using engineName_preprocess() and engineName_preprocess_hook() in Drupal 6, see
+
+<a href="http://drupal.org/node/223430">Setting up variables for use in a template (preprocess functions)</a>
+</p>
+<p>
+We have used phptemplate_engine_preprocess for the examples, 
+but you could also use preprocessors within the theme itself, such as themeName_preprocess().
+Note also that we have often used the hook specific extensions, such as phptemplate_engine_preprocess_node().
+If you only need to alter pages or nodes, it should more efficient to be more specific in your code.
+It is also clearer...
+</p>
+
+<h4>Where they work</h4>
+<p>
+Much of this will work in general. The code is not Taxonomy Treemenu specific.
+<pre>
+taxonomy_treemenu_get_tid_ancestry() 
+</pre>
+needs Taxonomy Treemenu installed (can be done otherwise - taxonomy_get_ancestry(), but cheaper if the module is there).
+<pre>
+taxonomy_treemenu_find_css_file()
+</pre>
+is a stand-alone function, and could even be ripped out of the module (if you feel that way).
+</p>
+
+<h3><i>General Discussion</i></h3>
+<p>
+Druapl derives its automatic template suggestions from the URL.
+So node/node% can be targeted with a template 'node-9.tpl.php'
+A page containing a node also carries taxonomy parantage data for the node, which would seem to be helpful.
+</p>
+<p>
+This breaks down for two reasons.
+</p>
+<p>
+Issue one is that data will be dropped for non-stock URLs, for example, Taxonomy Treemenu's extended URL feature.
+Node pages accessed through extended URLs lack any node, and so term, data! 
+To Drupal, they are a dumb box; a raw page with something in it, passed through from somewhere else.
+</p>
+<p>
+The other issue is that Drupal's theming does not handle the taxonomy data, just the URL.
+If the URL has no taxonomy data, by default, no template suggestions are generated which refer to the Taxonomy.
+</p>
+<p>
+The upshot is this.
+If you want to theme part of a Taxonomy Treemenu, you need a template for every single node,
+which is obscure and hard to maintain. 
+</p>
+<p>
+The following code snippets are ways of reducing your template code.
+Some are expensive, some have limitations. 
+But all of them will make a large reduction in template code, making it much easier to maintain.
+</p>
+
+
+<h3><i>Sub-templating</i></h3>
+
+<h3>Controlling templating by sub-templates</h3>
+<p>
+First, if you have code which is repeated through templates, here is a useful trick.
+It offers no performance advantage
+(though if you have many css files you may try assembling the templates on the client side, 
+using jQuery. 
+Finally, this suggests a client-side AJAX site, though that has it's own problems).
+</p>
+<p>
+Call some different templates as you are already.
+If you want to style a Treemenu, the templates are probably multiplying fast, with very repetitive material.
+for example, they may all have the same body code. So try this...
+</p>
+<p>
+Rip out the body contents and put them in a separate file, called, say, myThemeName-view-node.php.
+And put something similar to this into the templates where the body should be,
+<pre>
+  &lt;body id='cdvpage-node-body'&gt;
+
+    &lt;!-- node template --&gt;
+   &lt;?php require_once(drupal_get_path('theme', 'myThemeName') . '/view-ttm-node.php');
+ ?&gt;
+    &lt;!-- EOF node template --&gt;
+
+  &lt;?php print $closure ?&gt;
+  &lt;/body&gt;
+</pre>
+Now the template files, though multiplying, are MUCH smaller. 
+Also, you have the advantages of encapsulation;
+less likely for a rogue template to throw hard-to-trace errors, 
+easier to change the base template in one edit.
+</p>
+<p>
+Did you wonder where this idea comes from (all ideas come from somewhere)?
+It's from Ruby on Rails, another website construction framework. 
+Rails allows you to create many and varied sub-templates which are barely snippets 
+(as though Drupal's themes were consistent with the template code).
+Ruby on Rails has it's own set of usage issues;
+Rails sites are near-impossible to deploy without a dedicated server,
+and it is hard for a non-professional to build a secure and fully rounded site.
+But Rails is way ahead of Drupal in this area. That's a personal opinion, of course.
+</p>
+
+
+
+<h3><i>Control over node templates</i></h3>
+
+<h3>Fine-grained control over node templates, dependant on position in the taxonomy.</h3>
+<h3>Summary</h3>
+<ul>
+<li>
+Works for stock urls only (?q=node/%node).
+</li>
+<li>
+Cross menu code.
+</li>
+<li>
+Templates can be created to operate on any node, by descendant of a term
+e.g. node-tid-4-descendant.tpl.php.
+</li>
+
+<li>
+
+</li>
+</ul>
+
+<p>
+In myTheme/template.php add,
+<pre>
+function phptemplate_engine_preprocess_node(&$vars) {
+  $node = $vars['node'];
+  if ((module_exists('taxonomy')) && !empty($node->taxonomy)) {
+    foreach ($node->taxonomy as $term) {
+      $vars['template_files'][] = 'node-tid-'. $term->tid .'-descendant';
+    }
+  }
+}
+</pre>
+
+</p>
+
+<h3>Fine-grained control over node templates, dependant on position in the taxonomy, for Treemenu extended URLs</h3>
+<p>
+The problem with extended URLs is that Drupal's base template function (template_preprocess_page()) 
+will search for a stock node route (?q=node/%node),
+and so fail to find the node data for the extended URL. 
+This would seem to be an ugly situation, as templates have no mechanism to draw in initial data as variables.
+So, unless Treemenu implements its own template, 
+the useful node/term data gathered from menu and page routing is dropped.
+Therefore, a designer can not use the simple method above. 
+</p>
+<p>
+However, the following solutions for page templating will work.
+So you could modify one of them, but for a node template and maybe a node preprocesser. 
+</p>
+
+
+<h3><i>Control over page templates</i></h3>
+
+<h3>Page templates for stock urls, dependant on the active term path through the taxonomy.</h3>
+<p>
+This is reasonably easy, as Drupal's page template preprocessor glues node data into the page preprocessor data.
+So all a designer needs to do is modify the node code given above, for a page template.
+Sorry, no example yet.
+</p>
+
+
+<h3>Page templates for extended urls, dependant on the active term path through the taxonomy</h3>
+
+<ul>
+<li>
+Works for extended URLs ( ?q=ttm/[menu-name]/node/%node).
+</li>
+<li>
+Extended URL version only generates tids for the menu in question.
+</li>
+<li>
+Templates which can be created to operate on any page for a node, by the node's position in a treemenu path. 
+e.g. page-node-tid-4-descendant.tpl.php.
+</li>
+</ul>
+
+<p>
+For extended URLs, we now have no taxonomy or node data passed through to the preprocessor and templates.
+The preprocessor code code must retrieve the data.
+The obvious and unfortunate approach would be a complex and semi-recursive taxonomy search
+(taxonomy_get_ancestry() would work).
+</p>
+<p>
+Fortunately, Taxonomy Treemenu carries term parentage within it's menu links.
+So we have built a function into Taxonomy Treemenu to retrieve a taxonomy ancestry.
+The function is probably as efficient as Drupal's own node template taxonomy search.   
+</p>
+
+<p>
+In myTheme/template.php add,
+<pre>
+function phptemplate_engine_preprocess_page(&$vars) {
+  $q = $_GET['q'];
+  $qa = explode('/', $q);
+  if ($qa[0] == 'ttm' && $qa[2]) {
+    foreach (taxonomy_treemenu_get_tid_ancestry($qa[1], $qa[2], $qa[3]) as $tid) {
+      $vars['template_files'][] = 'page-node-tid-'. $tid .'-descendant';
+    }
+  }
+}
+</pre>
+Now that is very Drupal, and not un-efficient (if you must use preprocessors).
+<p>
+
+
+<h3><i>Control over css, using base templates</i></h3>
+<p>
+So, you are an organised person, who believes in the web credo of content separated from style 
+("The way it should be done").
+So you only have maybe two templates for your site, but you are hoping you can identify parts of a treemenu using css.
+A crude example; you wish to turn the corporate parts of your site royal blue.
+</p>
+<p>
+If you hoped you could follow the model above you are in for a nasty shock.
+This is an unresolved area of Drupal code, see this blog
+<a href="http://civicactions.com/blog/2009/jun/11/cant_add_css_js_rss_icon_or_set_title_or_messages_preprocess_page">on preprocessing anything other than template suggestions</a>.
+The problem is, while Drupal processes template suggestions near the end of the theming pipeline, 
+most other content processing (css, content, messages, and javascript) is done near or at the start.
+So this, in a preprocessor,
+<pre>
+    $vars['css'] = drupal_add_css(drupal_get_path('theme', 'myThemeName') .'/test.css', 'theme');
+</pre>
+is valid code, but won't get rendered in, as the css has already been processed.
+</p>
+<p>
+As a module designer, you would hope to put the information in first, 
+because we already have the data when the module processes a URL.
+However, as mentioned, Drupal will not allow modules to provide variables beforehand.
+</p>
+<p>
+Failing that, you would have hoped that the css, and other information, was processed after the preprocessors, not before.
+To add to this, it would be great if css (and other data) followed the scheme of template suggestions.
+Then a designer could have named files such as,
+<pre>
+node.css
+front-page.js
+</pre>
+Though I can see there might be reasons of overriding, and what is called 'aggregation', which would prevent this.
+</p>
+<p>
+Anyhow, you can,
+<ul>
+<li>follow the ideas outlined in the link above (registry hacks and custom preprocessors), </li>
+<li>wait for Drupal 7, which may have template rendering functions</li>
+</ul>
+Or you can try the fixes listed below. Read on!
+</p>
+
+
+
+<h3>Adding css, based on named files, using different templates</h3>
+<p>
+This is the most efficient and least flexible solution. 
+You keep the usual Drupal template suggestions, but give them individual css. 
+You then reduce the redundancy by using the sub-template code mentioned earlier.
+The css is locked to the template, so you would only use this solution in a situation, say, 
+where you have very general templates (one per Treemenu?) that you wished to style differently 
+(but they share the same body code).
+</p>
+<p>
+In each template, inject css snippets like this,
+<pre>
+  &lt;head&gt
+    &lt;title&gt&lt;?php print $head_title ?&gt;&lt;/title&gt
+    &lt;?php print $head ?&gt
+    &lt;?php print $styles ?&gt;
+
+    &lt;!-- Our stylesheet --&gt;
+ &lt;?php 
+$filepath = drupal_get_path('theme', 'myThemeName') .'/targetFile.css' .'?'. substr(variable_get('css_js_query_string', '0'), 0, 1);
+print '&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; media=&quot;all&quot; href=&quot;'. $filepath .'&quot; /&gt;'.&quot;\n&quot;;
+?&gt;
+    &lt;!-- EOF our stylesheet --&gt;
+
+    &lt;?php print $scripts ?&gt
+    <!--[if lt IE 7]>
+      <?php print phptemplate_get_ie_styles(); ?>
+    <![endif]-->
+  &lt/head&gt
+  
+</pre>
+
+That works, but you are now multiplying templates again, with essentially the same body contents.
+So use the sub-template code (described above) to extract the template body into a separate file.
+</p>
+
+
+
+<h3>Adding css, dependant on the active term path through the taxonomy, using a custom template variable</h3>
+
+<p>
+This should never really be done. The code should be in an admin interface, or automatic.
+However, you could use a switch.
+</p>
+<p>
+This is probably the solution to choose if you want to change the css on only one template, 
+and when code efficiency is important.
+</p>
+<p>
+Hiding the switch in the preprocessor is hard to maintain,
+so this example puts the switch into the template.
+This is also a bad place, because templates shouldn't contain code logic - but needs must.
+</p>
+<p>
+Do something like this in template.php (template suggestion code left in as you may want them too)
+<pre>
+function creakdv_preprocess_page(&$vars) {
+  $q = $_GET['q'];
+  $qa = explode('/', $q);
+  if ($qa[0] == 'ttm' &amp;&amp; $qa[2]) {
+    $ta = taxonomy_treemenu_get_tid_ancestry($qa[1], $qa[2], $qa[3]));
+    foreach ($ta as $tid) {
+      $vars['template_files'][] = 'page-node-tid-'. $tid .'-descendant';
+    }
+    /* Key line. Adds a template variable with all the tid ascendants (to a treemenu extended url page) */
+    $vars['tid_ancestory'] = $ta;
+  }
+}
+</pre>
+</p>
+
+<p>
+Right, now you can do something like this in the template,
+<pre>
+ &lt;?php 
+  // NOTE: $tid_ancestory is provided by preprocessor X.
+  if (in_array(2, $tid_ancestory)) {
+    $targetfile = target1;
+  } 
+  elseif(in_array(5, $tid_ancestory)){
+    $targetfile = target2;
+  };
+  
+  $filepath = drupal_get_path('theme', 'myThemeName') .'/'. $targetfile .'.css' .'?'. substr(variable_get('css_js_query_string', '0'), 0, 1);
+  print '&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; media=&quot;all&quot; href=&quot;'. $filepath .'&quot; /&gt;'.&quot;\n&quot;;
+  ?&gt;
+</pre>
+This solution offers no performance advantage, but slashes code to a minimum, which is good.
+It isn't very elegant or maintainable, but at least the switching is in a sensible place.
+And your code is reduced to necessary templates only.
+</p>
+
+<h3>Adding css, by similar name, using taxonomy_treemenu_find_css_file()</h3>
+<p>
+And now, a helper function built into Taxonomy Treemenu.
+The function is used to search the theme folder for css files with the same name as the template suggestions.
+This solution requires a separate template for each change in theming, but is well-organised.
+It requires no preprocessor code at all.
+This is probably the code of choice if you would like some variations in the HTML (template code),
+with snippets of extra css.
+</p>
+<p>
+So take, for example, a template such as page-node-tid-3-descendant.tpl.php.
+You name the special css file as page-node-tid-3-descendant.css, and put it in the same folder.
+The function will find the file, and render it, and you can use the result.
+</p>
+  
+<p>
+There are two ways of using the function,
+<ol>
+<li>Place the helper into a preprocessor and pass the results as a new variable 
+(as in the code from the previous section).</li>
+
+This would be more appropriate for a fully committed site.
+
+<li>Place the function straight into the template.</li>
+</ol>
+We illustrate the second option below.
+</p>
+<p>
+Make up a .css file with the extra css, give it the same name as the template, and place it in the same folder.
+</p>
+
+<p>
+In the template, place something like this,
+<pre>
+  &lt;head&gt;
+    &lt;title&gt;&lt;?php print $head_title ?&gt;&lt;/title&gt;
+    &lt;?php print $head ?&gt;
+    &lt;?php print $styles ?&gt;
+
+    &lt;!-- Find the similar stylesheet --&gt;
+ &lt;?php 
+print taxonomy_treemenu_find_css_file($directory, $template_files);
+?&gt;
+    &lt;!-- EOF Find the similar stylesheet --&gt;
+
+    &lt;?php print $scripts ?&gt;
+    &lt;!--[if lt IE 7]&gt;
+      &lt;?php print phptemplate_get_ie_styles(); ?&gt;
+    &lt;![endif]--&gt;
+  &lt;/head&gt;
+</pre>
+That's it. When the template is called, the .css file with a similar title is also loaded. No switches.
+</p>
+  
+<p>
+Like the other suggestions, this idea does not aggregate the css.
+It is untested on sub-themes and the file MUST be in the same folder as the template.
+Mess round with the template suggstions too much and it could get confused.
+Also, the code is even slower, as it does a directory search.
+But it is a Drupalish solution, and easy to maintain.
+</p>
+
+<h3>Adding css, by tid, using taxonomy_treemenu_find_css_file()</h3>
+<p>
+At this point you may have had enough, I guess. 
+But there is another possibility, the most expensive solution to css variation by far.
+However, it is nearly as good as the code above for maintainability, and by far the best for DRY, efficient coding.
+Still interested?
+</p>
+<p>
+This solution classifies additional css files by general names.
+It requires preprocessor code, but in this case the preprocessor code is generic, 
+so once added, the code will never need altering.
+</p>
+<p>
+Here is the full declaration of taxonomy_treemenu_find_css_file(),
+
+<pre>
+/**
+ * Find and render a css file from an array of identifiers.
+ * @param $dir
+ *   To search in. No recursion.
+ * @param $fids
+ *   An array of partial filenames, to select from.
+ *   The array is reversed and the first match wins.
+ * @param  $filename_prefix
+ *   To add to the fids, for matching against existing files.
+ * @return
+ *   A rendered css line, ready for a template.
+ */
+function taxonomy_treemenu_find_css_file($dir, $fids, $filename_prefix = '') {
+...
+}
+</pre>
+</p>
+
+<p>
+So you can do this. Put the following code into your template.php file. This generates a tid ancestory variable
+(a little like the above, but no need for the template suggestions, as we now can use one template),
+<pre>
+function creakdv_preprocess_page(&$vars) {
+  $q = $_GET['q'];
+  $qa = explode('/', $q);
+  if ($qa[0] == 'ttm' &amp;&amp; $qa[2]) {
+    /*Key line. Adds a template variable with all the tid ascendants (to a treemenu extended url page) */
+    $vars['tid_ancestory'] = taxonomy_treemenu_get_tid_ancestry($qa[1], $qa[2], $qa[3]));
+  }
+}
+</pre>
+</p>
+<p>
+Now put this into the template,
+<pre>
+    &lt;!-- Find tid based stylesheets --&gt;
+ &lt;?php 
+  // NOTE: $tid_ancestory is provided by preprocessor X.
+  print taxonomy_treemenu_find_css_file($directory, $tid_ancestory, 'page-node-descendant-tid-');
+ ?&gt;
+    &lt;!-- EOF Find tid based stylesheets --&gt;
+</pre>
+
+and add, to your theme folder, 
+stylesheet files such as page-node-descendant-tid-5.css and page-node-descendant-tid-47.css.
+Now you have just one template, and it will call extra css depending upon the tid ancestry of it's node content.
+You can create a Web2 XTML compliant utterly modern 'blink' site in minutes...
+</p>
+
+<p>
+NOTE: The prefix can be anything you choose. We suggest
+<ul>
+<li> follow the naming scheme of the base template</li>
+ so for Taxonomy Treemenu, then you might use,
+<pre> page-ttm-menu-myMenuName-descendant-tid-[X].css</pre>
+ without taxonomy treemenu,
+<pre> page-node-descendant-tid-[X].css</pre>
+ Then all your files will gather themselves by name in the theme folder, which is good.
+ OR
+ <li>work from a gneralized description</li>
+  e.g.
+  <pre> myTheme-page-node-descendant-tid-[X].css</pre>
+ </ul>
+</p>
+ 
+<p>
+The downsides are that this is the most expensive solution. 
+And you may feel that you shouldn't have to do this to add some dependant css action.
+The taxonomy ancestry may get confused or too general on large or multiple ancestry sites.
+This code needs some preprocessing, which the previous suggestion avoided.
+The file identification tag must go at the end of the filename.
+Otherwise, in terms of maintainability and code reuse, this is good.
+ </p>

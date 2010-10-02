@@ -1,0 +1,199 @@
+<!-- $Id: translation.html,v 1.1 2009/09/26 21:53:11 rcrowther Exp $ -->
+
+
+<h3>Summary</h3>
+<p>
+WARNING: translation is a work in progress. Some of this may reflect intentions, not finished code.
+</p>
+<h4>Always</h4>
+<ul>
+<li>
+Treemenu will recover whatever term information it can, in whatever langauge. 
+So if a term is untranslated, or in another langauge, it will be displayed.
+</li>
+This is done to preserve the Taxonomy, and consequently the menu, structure. 
+Node links, however, will be removed.
+</ul>
+
+<h4>Translation using core (Even if the 'Locale' and 'Translate Content' (Translate) modules are enabled)</h4>
+<ul>
+<li>
+Treemenus use the default language. THEY OVERRIDE OTHER SETTINGS IN DRUPAL.
+</li>
+</ul>
+
+
+<h4>Translation with the 'Internationalization' module, 
+and the i18nmenu and i18ntaxonomy sub-modules, enabled</h4>
+
+<ul>
+<li>
+i18taxonomy offers various options for translating terms, based in the vocabulary.
+See 'admin/content/taxonomy/' (and edit the chosen vocabulary). 
+Depending on the term translation mode, Treemenu offers further options for translating menus.
+<p>*** WARNING: using multilingual content ('Per language terms'),
+your menu many not look as you expected after creating translations. 
+A menu rebuild will fix this ***</p>
+</li>
+
+
+<li>
+The i18taxonomy option which allows most Treemenu options is to set the 'Translation Mode' to 'Per language terms'.
+</li>
+</ul>
+
+
+<h3>Translation in Drupal and Taxonomy Treemenu</h3>
+
+<p>
+Drupal uses the core modules 'Translate' 
+(shown in the interface as 'Content Translation') and 'Locale'.
+The translation facilities in Drupal allow for multi-lingual sites.
+That is, not only can Drupal convert the text, but there are facilities for recognising 
+which language a site visitor wishes to see, or an administrator wishes to show, and switching the view.
+</p>
+<p>
+However, the facilites are not complete. Drupal 6 can't translate custom menu items or taxonomy terms.
+These gaps are covered by a contributed module called 
+<a href="http://drupal.org/project/i18n">Internationalization</a>. 
+When installed, a user will find that this module is a collection of modules in one download. 
+There is much information associated with this module; several further modules, for example,
+and good instructions.
+If you would like your website to work in several langauages, you should at least have a look, 
+even if you find the core Drupal facilites are enough. 
+</p>
+
+
+<p>
+At present, Taxonomy Treemenu translation is advanced, but half-developed. 
+The following contains information about Taxonomy Treemenu and translation.
+To translate content, a designer needs to enable both core modules, then load
+<a href="http://drupal.org/project/i18n">Internationalization</a>,
+then enable i18nmenu and i18ntaxonomy.
+</p>
+
+
+<h3>If you want to translate, this is useful to know</h3>
+<p>
+Drupal has layers of data and code to choose langauge,
+<p>
+<img src="path:images/drupal_translation.png"/>
+
+
+</p>
+All the other options you may stumble across or find, are part of this interaction.
+Some more information,
+</p>
+
+
+<ul>
+<li>
+The base assumptions are used more than you may think. 
+This is where Drupal starts when it wishes to find a translated node (politics, eh?)
+This is also a factor when another language is used (should untranslated content be displayed or erased?).
+</li>
+<li>
+The default langauge is stored in a variable in the database.
+That's what is generally appearing when you see a language code appear at the start of a URL,
+though the URL may be modified by the switch block.
+<p>
+There are several strong warnings against changing this setting. 
+The problem seems to be that translated strings depend on this setting and not the no-translation/English base.
+Therefore, if you change the setting, Drupal looses all track of current string translations.
+</p>
+</li>
+<li>
+The current language is stored in a PHP global variable concerning language.
+It's mainly concerned with overriding languages in multi language sites.
+It may override other settings, or be overidden itself, when a forceful request is made for a certain language.
+</li>
+<li>
+Most general data is capable of carrying a language (users/nodes etc.). 
+This may override other data, or the lack of this data may cause the language to default to something else.
+</li>
+</ul>
+
+<p>
+The settings used to choose these langauges, and the interactions between them, cause complexity...
+</p> 
+
+
+
+
+<h3>Provision using core (even if 'Locale' and 'Translate Content' are enabled)</h3>
+
+
+<p> 
+Taxonomy Treemenu should NOT react to the presentation language, or through the 'Language Switcher' block.
+</p>
+<p>
+We do not know about other usages of translations, such as setting by node or URL - 
+please post your experiences/ideas to the issue queue. 
+</p>
+
+
+<h3>Translation of Treemenus using 'Internationization', and submodules 'i18nnenu' and 'i18ntaxonomy'</h3>
+<p>
+*** WARNING: when using multilingual content ('Per language terms') there are many taxonomy changes.
+Your treemenu many look strange after adding translations - 
+the module compulsively generates links as the taxonomy changes. 
+For example, translated material may appear in the menu root. 
+A menu rebuild will fix this. ***
+Coding note: Yes, sometime I need to look for code hooks and the like to fix this.
+</p>
+<p>
+Treemenu provides options based on the underlying vocabulary status.
+</p>
+<p>
+The easiest way to see this is to go to the treemenu edit form and look at the status display.
+</p>
+<p>
+Since Taxonomy Treemenu builds menus from links to content (terms/nodes), 
+the widest range of options is availible if the underlying vocabulary is set to 'Per language terms'.
+</p>
+
+
+<h3>Background to the code</h3>
+<p>
+All modules have a hard time with translation facilities.
+Taxonomy Treemenu has a couple of peculiar problems, because it auto-generates menus from the taxonomy.
+</p>
+
+<p>
+First, we are displaying terms. But core will not currently translate terms. 
+Early on, the module supported node translation, but that makes little sense when the terms can't be translated.
+So the module currently overrides the core translations. 
+If the <a href="http://drupal.org/project/i18n">Internationalization</a> and i18ntaxonomy sub-module are not enabled,
+nodes are displayed consistently, like the terms, in the default language.
+</p>
+
+<p>
+Second, both the coders and the users have a problem, or an opportunity?
+Do you wish to treat term translation as,
+<ol>
+<li>A translation of the term, rendered into a menu?</li>
+(This has the disadvantage, maybe, of not being able to change the language from the web interface.
+Treemenu must read the taxonomy again, and rebuild the menu in a new langauge.)
+
+<li>A translation of a string?</li>
+(This has the disadvantage of not being usable for structural purposes, 
+e.g. you can never search on a translated term string.)
+
+<li>A translation (a full copy) of the term itself</li>
+(This is awkward and lengthy to set up and trigger, for coders, users, and administrators.)
+</ol>
+These options all have their advantages, too; string translation, for example, is very easy to administer.
+And then there are further good options offered by the <a href="http://drupal.org/project/i18n">Internationalization</a>
+ module's i18ntaxonomy sub-module, such as translating whole vocabularies.
+</p>
+
+<p>
+Treemenu's author decided to enable a subset of the functionality, because,
+<ol>
+<li>He was tired.</li>
+<li>Several options don't apply to treemenus.</li> 
+For example, string localization is mainly intended for custom menu items.
+Treemenus deal in linkable content (terms and nodes), so being able to switch the title seems of little advantage.
+</ol>
+</p>
+

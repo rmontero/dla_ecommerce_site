@@ -1,0 +1,11 @@
+; $Id: gcal_events.info,v 1.2 2008/10/20 03:28:17 se7enlc Exp $
+name = GCal Events
+description = Upcoming events blocks for Google Calendar. 
+package = Date/Time
+
+; Information added by drupal.org packaging script on 2009-01-28
+version = "6.x-1.4"
+core = "6.x"
+project = "gcal_events"
+datestamp = "1233154522"
+

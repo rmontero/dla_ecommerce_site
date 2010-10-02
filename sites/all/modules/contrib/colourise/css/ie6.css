@@ -1,0 +1,24 @@
+/* $Id: ie6.css,v 1.1.1.7 2009/02/05 16:45:38 gibbozer Exp $ */
+
+/**
+ * You may not need to edit this file!
+ * If you really want to override default layout and style
+ * you can add your style in the "custom.css" file
+ * then activate it in the theme settings page.
+ * (/admin/build/themes/settings/colourise)
+ */
+
+ /* Bottom Block Fix */
+* html .footer-column {
+  width: 31.9%;
+}
+
+* html #footer-column-wrap #last {
+  float: right;
+}
+
+/* admin.css IE fix */
+* html div.admin .left,
+* html div.admin .right {
+  width: 42%;
+}

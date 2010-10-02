@@ -1,0 +1,86 @@
+<h3>Background Principles</h3>
+<p>
+This module ranges over large areas of Drupal to achieve it's ends.
+Also, abstract menus have a theoretical background. They are more puzzling than at first apparent.
+If you ask the question, "Why can't I build a menu from the Taxonomy?" then you need to try first, and understand the complexities...
+However, we have some clear ends,
+</p>
+
+<h3><i>Links are links</i></h3>
+
+
+Taxonomy treemenu is about providing a tree structured menu.
+
+If you are hoping for a module like Views, in which a designer can put nearly any site information into a list row,
+and features such as visible filters,
+this module will not, and never will provide such features. 
+We have two reasons for this.
+
+<ul>
+<li>
+<p>
+Views is big module, and demands a lot of memory and some processing power.
+
+</p>
+To add tree structuring to the lists would overload small computers and client browsers.
+</li> 
+<li>
+<p>
+With current browser rendering, too much information would overwhelm the visibility of the tree structure.
+</p>
+So we stick to a straight anchor links, and the information that can be (reasonably) contained within them. 
+</li>
+</ul>
+
+<h3><i>Help is not something nice you add afterwards</i></h3>
+No help is unfinished work. Same as if you wrote the help but hadn't written the code.
+
+<h3>There are also some background aims</h3>
+
+<h3><i>Try and follow the Drupal method of providing abstract generalized frameworks.</i></h3>
+Ocassionally this clashes with Drupal's own implementations. 
+For example, Drupal makes no provision for menus on pages, 
+but we treat a menu as an object you can put on a page or in a block, regardless.
+
+<h3><i>Push rendering generalities into the interface</i></h3>
+Templates are all very well, and one strength of Drupal is it's massive, overidable templating system.
+But templates are essentially a view (the Model/View/Controller paradigm), 
+and should be reserved for css, and a little fixed HTML.
+And there is another issue. 
+Commercial web designers need a high level interface which they can hand over to their client,
+knowing they can guarentee long-term maintainability.
+You can see this in the way we offer node ordering in the admin interface, 
+complementing the forms which core uses for taxonomy ordering.
+
+
+<h3><i>Find the best method for our ends</i></h3>
+This is very evident in the interface.
+The module Taxonomy Menu uses a clever trick (building a base menu into the router), 
+which allows seamless usage of Drupal menu interfaces.
+We have different ends, so we use as much of the interface as we can, 
+but, in use, you will see warning messages and various disabled items.
+
+In code you will find some functions where we walk round Drupal code.
+For example, our internal term theme walks round Drupal's term rendering code,
+gaining various advantages such as listing the terms in the same order as the menu.
+
+
+<h3><i>...but use Drupal where we can, and don't drift</i></h3>
+We're not going to rewrite the book. Besides, that is harder to maintain.
+
+
+<h3><i>Sketch out functionality</i></h3>
+A (sometimes contentious) principle of Drupal is never to keep backwards compatibility
+ at the expense of better code.
+We do something similar, in that we test out code as we go.
+This can lead to dysfunctional code, and a broken user experience.
+But it keeps development moving, and we gain a stock of useful code.
+
+<h3><i>Maintain provision for non-Views users</i></h3>
+Views is a stroke of genius, but it's not for everyone.
+It won't run on small memory machines, and it needs some heft in the CPU and bandwith.
+Too often now, designers are using it for small scale uses, to achieve ends they need from other modules.
+This module implements such features as the internal theme,
+so that these needs can be adressed without Views, if needs are simple.
+
+<h3><i></i></h3>

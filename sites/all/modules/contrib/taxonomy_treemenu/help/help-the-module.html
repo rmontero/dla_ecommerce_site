@@ -1,0 +1,98 @@
+<!-- $Id: help-the-module.html,v 1.2 2009/08/10 11:25:33 rcrowther Exp $ -->
+
+
+<h3>Helping the Taxonomy Treemenu project</h3>
+
+So you'd like to help? Great!
+
+You don't have to be a coder. Not on this project.
+
+<h3><i>Non-coders</i></h3>
+
+<p>
+Words are words, as far as I am concerned, code or not.
+So have a look over the module and see where you think the words can be improved.
+All the help files, such as this one, can be found in the folder 'help'.
+You don't need anything but a text editor to change them.
+If you don't know HTML you can ignore the tags, and change the words.
+If you get a bit better then a HTML text editor, such as  <a href="http://bluefish.openoffice.nl/">Bluefish</a> will help put tags in.
+I suggest you avoid word processors with HTML abilities (Word/OpenOffice) as they spew out formatting garbage.
+I also recommend you avoid complex webpage creators (e.g. Dreamweaver) as they are slow, and make unhelpful assumptions.
+</p>
+<p>
+By the by, this module now uses Advanced Help for it's main help system, 
+and I can't think of a better place to start to learn about HTML or take the first steps to coding something real.
+</p>
+<p>
+Also, pictures and diagrams are great, but time consuming.
+So if you fancy a go with Photoshop or the GIMP, please do!
+We'll stick them in for you if you don't know how.
+</p>
+<p>
+Any module will recieve pages of usability reports, but you might also consider properly testing the module.
+We'd be very glad to help out and point where to go, and immensely grateful for the results.
+</p>
+
+
+
+
+<h3><i>Beginner coders</i></h3>
+
+<p>
+So you know a little PHP? Great. 
+</p>
+<p>
+In contradiction to most coding practice, I litter my code with comments. 
+It's untidy, and harder to read, but within a fast evolving module to which I can't give sustained development, 
+the comments help me pick up where I am.
+So all you have to do is cruise round the module 
+(taxonomy_treemenu.module and taxonomy_treemenu.admin.inc are the best places)
+looking for the //TODO: and //TO CONSIDER: marks.
+</p>
+<p>
+Some areas are a bit fiendish. For example, you need a basic understanding of object orientated code
+ to handle anything to do with Views or Taxonmy Treemenu's own options query builder.
+But some are ridiculously simple. 
+For example, the churning development means that there is always a certain amount of renaming that needs to be done, 
+and functions to be tidied up.
+</p>
+<p>
+Some information which may help; I was a beginner to PHP coding when I started this project.
+</p>
+
+<h3><i>Advanced Coders</i></h3>
+<p>
+Uh hu? What's your expertese? You're probably better than me, anyhow.
+</p>
+<p>
+The interface of this module is misleading.
+It's been refined to become very simple, a page of Drupal-looking form.
+The form is not as simple as it looks, and the code is large.
+This is not UberCart, or Views, but it heads in that direction. 
+The two issues are these. First, the module ranges over a vast swathe of Drupal. 
+It interfaces with the Taxonomy, the menu system and the form API, primarily. 
+Along the way that means taking in caching, JQuery, other API's (e.g. Views and PathAuto), and many more interfaces.
+The second issue is that we have to glue all this together.  
+</p>
+
+<p>
+One approach is the jolly fine open source approach of fixing what you don't like. 
+In Taxonomy Treemenu this is easy to set on, 
+as I've never tried to make 'cute' code, 
+prefering to sketch out an area and provide basic functionality.
+
+Sometimes this is a success, such as the menu rendering in Version 1. 
+Sometimes a failure, such as the Views integration in Version 4.2.
+But the failings and abilities of the code are usually evident when using the module.
+</p>
+<p>
+Another approach is if you have base knowledge about some area.
+You can go for that, or dive in, knowing as you do, that you have the skills to take it on. 
+If you feel adventurous, I usually have a longish TODO list of fixes, changes, updates, and new/depreciated features.
+So post. I'll give you the low-down on what is going on, and we can take it from there.
+</p>
+<p>
+As for working on the code, it is always exceptionally untidy, littered with comments and dpm()s. But then, that means it is informative if you want to know where to start.
+</p>
+
+

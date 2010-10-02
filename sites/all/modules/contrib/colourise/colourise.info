@@ -1,0 +1,49 @@
+; $Id: colourise.info,v 1.1.1.6 2009/02/04 19:23:30 gibbozer Exp $
+name = Colourise
+description = Dark tableless design with valid XHTML/CSS. Visit <a href="http://webzer.net/tags/colourise">Webzer.net</a> for more informations.
+version = VERSION
+core = 6.x
+engine = phptemplate
+
+screenshot = images/screenshot.png
+
+regions[left] = Left sidebar
+regions[right] = Right sidebar
+regions[content_top] = Top Content
+regions[content_bottom] = Bottom Content
+regions[footer_1] = Footer Block 1
+regions[footer_2] = Footer Block 2
+regions[footer_3] = Footer Block 3
+
+features[] = name
+features[] = slogan
+features[] = mission
+features[] = search
+features[] = favicon
+features[] = primary_links
+features[] = node_user_picture
+features[] = comment_user_picture
+
+; Add a stylesheet for all media
+stylesheets[all][] = css/reset.css
+stylesheets[all][] = css/baseline.css
+stylesheets[all][] = css/typography.css
+stylesheets[all][] = css/layout.css
+stylesheets[all][] = css/modules.css
+stylesheets[all][] = css/system-menus.css
+stylesheets[all][] = css/colourise.css
+
+; Add a stylesheets for screen and projector media
+; stylesheets[screen, projector][] = theScreenProjectorStyle.css
+
+; Add a stylesheet for print media
+stylesheets[print][] = css/print.css
+
+; scripts[] = yourscript.js
+
+; Information added by drupal.org packaging script on 2009-02-05
+version = "6.x-2.0"
+core = "6.x"
+project = "colourise"
+datestamp = "1233869427"
+

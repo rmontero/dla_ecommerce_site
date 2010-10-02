@@ -1,0 +1,50 @@
+<h3>Some examples of how sites enable menu systems</h3>
+<p>
+Here are some examples of how well known sites solve the various problems and possibilites of menu systems.
+This page is not intended as a promption of Taxonomy Treemenu, but to help you to decide how to handle menus on a site.
+</p>
+
+<h4>Wikipedia<h4>
+<p>
+Wikipedia (www.wikipedia.org) never shows structured lists on information pages, 
+so avoids complex menu and URL customization.
+This is useful for a site with extensive information, 
+but Drupal's region layout means that that by default, menus will appear on a page.
+To to follow such a format, a developer would remove menus from sidebars on nodes.
+Taxonomy Treemenu's role on such a site would be to provide flexible, navigatable index pages.
+Other sitemap and index modules can offer other display and configuration alternatives.
+</p>
+
+<h4>Microsoft's developer library<h4>
+<p>
+This site (http://msdn.microsoft.com/en-gb/library/default.aspx) uses a DHTML menu in the left sidebar 
+(on their site, the 'left sidebar' is an HTML frame).
+The site does not use aliasing, but probably could. This setup is very easy to imitate in Drupal (with aliases also!).
+You will need a module which can produce a menu from a taxonomy, and the module DHTML Menu.
+</p>
+
+<h4>EBay<h4>
+<p>
+FThe Ebay site (www.ebay.co.uk / www.ebay.com etc.) uses a hybrid menu system. 
+Each 'node' (auction item) has only one URL, 
+which is desisrable for a large site which may be searched from outside the site context.
+The site does not use 'treemenus', they use Views type lists, but they could. 
+Ebay never show their lists on the 'node' page,
+so the developers avoid the problem of how to target a menu within a multiple hierarchy.
+To help with navigation, the coders provide a multiple breadcrumb, for example,
+<pre>
+Your item is listed in,
+Cars Motorcycles & Vehicles >> Motorcycles and Scooters >> [My FireBlade, may break for spares]
+Vehicle Parts & Accessories >> Motorcycle Parts and Accessories >> Motorcycle Parts >> [My FireBlade, may break for spares]
+</pre>
+However, Ebay use customised URLs, as their URLs are huge!
+The large URLs carry a lot of information, 
+The information contained may be what is needed to construct the breadcrumbs.
+To finish off this unusual hybrid, EBay inject a human readable name into the middle of the URL!
+</p>
+<p>
+Drupal with Taxonomy Treemenu can do something like this,
+by using the 'multiple breadcrumb' feature on a multiple hierarchy taxonomy.
+You would then use Views, or perhaps treemenus, for navigation, and modify other URLs to follow the treemenu form, 
+thus maintaining only one URL per node.
+</p>

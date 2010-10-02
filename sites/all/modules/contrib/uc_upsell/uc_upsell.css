@@ -1,0 +1,39 @@
+/* $Id: uc_upsell.css,v 1.2.2.4 2009/04/10 16:59:03 torgospizza Exp $ */
+
+.cart-related-item{
+  width:150px;
+  position:relative;
+  float:left;
+  padding:2px;
+}
+
+/* container Div for cart */
+div#cart-related-products{ }
+
+/* container Div for block */
+div.upsell-products-block{ }
+
+/* Individual product Divs in cart */
+div.cart-related-item{ }
+
+/* Individual products in block */
+/* Change this to float:none; if you want a vertical listing */
+div.upsell-block-product{ float: left; padding: 2px; margin:0 5px; }
+
+/* Individual product titles */
+div.upsell-block-product-title{ }
+
+/* Customer message in cart */
+p.cart-related-text{ }
+
+/* Customer message in block */
+p.product-related-subject{ }
+
+/* Buy Now Link */
+a.buy-related-item{ }
+
+/* Upsell Image Thumbnail */
+img.buy-related-item{ }
+
+/* Buy Now Text and Currency */
+.buy-related-item-buynow{ }

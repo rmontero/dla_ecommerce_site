@@ -1,0 +1,148 @@
+.ui-dialog {
+  border: 0;
+  width: 550px;
+  margin: 0px auto;
+  font: 12px Arial, Helvetica, sans-serif;
+  text-align: center;
+  background: transparent;
+}
+.ui-dialog-overlay {
+  background-color: #fff;
+}
+.ui-dialog-container {
+  width: 550px;
+}
+.ui-dialog-titlebar {
+  background: url(curve-top.gif) no-repeat;
+  border: 0;
+  font-size: 0;
+  line-height: 0;
+  height: 18px;
+}
+.ui-dialog-titlebar-close {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+.ui-dialog-buttonpane {
+  background: transparent;
+  border: 0;
+  text-align: right;
+  padding: 0 20px 10px 0;
+  width: 530px;
+  left: 0px;
+}
+.ui-dialog-buttonpane button {
+  padding-left: 10px;
+}
+
+.suy {
+  background: #1a1a1a;
+  padding: 0;
+}
+.suy_content {
+  color: #999;
+  position: relative;
+  width: 550px;
+}
+.suy_title {
+  background: url(heading-main.gif) no-repeat center bottom;
+  font-size: 1px;
+  height: 43px;
+  margin: 0 auto;
+  padding: 0;
+  text-indent: -9999px;
+  width: 550px;
+}
+.suy_subtitle {
+  font-size: 14px;
+  margin: 8px 0 11px;
+}
+.suy_chrome {
+  display: block;
+  height: 30px;
+  width: 550px;
+}
+.suy_chrome a {
+  background: url(Chrome.jpg) no-repeat;
+  padding: 10px 30px 35px 0;
+  font-size: 0;
+  line-height: 0;
+}
+.suy_eightup_label {
+  margin: 2px 0 22px;
+}
+.suy_eightup_label a {
+  color: #999;
+  text-decoration: none;
+}
+.suy_upgrade {
+  float: left;
+  display: inline;
+  text-align: left;
+  padding-left: 35px;
+  width: 270px;
+}
+.suy_upgrade h3 {
+  background: url(heading-upgrade.gif) no-repeat;
+  font-size: 0;
+  line-height: 0;
+  margin: 0;
+  height: 13px;
+  width: 146px;
+}
+.suy_upgrade dl {
+  line-height: 1.4;
+  margin: 7px 0 0 2px;
+}
+.suy_upgrade dt {
+  color:#e6e6e6;
+}
+.suy_upgrade dd {
+  font-size: 11px;
+  margin-left: 20px;
+}
+.suy_browsers {
+  float: left;
+  font-size: 14px;
+  text-align: left;
+  width: 220px;
+  margin-left: 20px;
+}
+.suy_browsers h3 {
+  background: url(heading-browsers.gif);
+  font-size: 0;
+  line-height: 0;
+  margin: 0;
+  height: 13px;
+  width: 152px;
+}
+.suy_browsers a {
+  color: #e6e6e6;
+  display: block;
+  padding: 4px 0 8px 44px;
+  text-decoration: none;
+  width: 145px;
+}
+.suy_browsers ul {
+  list-style: none;
+  margin: 0;
+  padding: 9px 0 0 0;
+}
+.suy_browsers ul li {
+  height: 39px;
+  margin: 0;
+  padding: 0;
+}
+.suy_eightup {
+  background: url(IE.jpg) no-repeat;
+}
+.suy_firefox {
+  background: url(Firefox.jpg) no-repeat;
+}
+.suy_safari {
+  background: url(Safari.jpg) no-repeat;
+}
+.suy_opera {
+  background: url(Opera.jpg) no-repeat;
+}

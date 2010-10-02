@@ -1,0 +1,20 @@
+<?php
+// $Id$
+/**
+* @file
+* Customizes the way Pechi.net is rendered.
+*/
+
+/**
+* Implementation of hook_help().
+*/
+function pechi_help($path=NULL, $arg=NULL) {
+    //$output = '<p>'.  t("pechi is a simple module to test functions and pages in Drupal");
+    //    The line above outputs in ALL admin/module pages
+    switch ($path) {
+        case "admin/help/pechi":
+        $output = '<p>'.  t("pechi is a simple module to test functions and pages in Drupal") .'</p>';
+            break;
+    }
+    return $output;
+}

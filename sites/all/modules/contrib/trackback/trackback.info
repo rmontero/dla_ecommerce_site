@@ -1,0 +1,11 @@
+; $Id: trackback.info,v 1.2.2.1 2008/12/09 15:40:56 thepanz Exp $
+name = Trackback
+description = Allow for sending and receiving TrackBacks, which is a way for sites to notify another that they have commented on a post.
+core = 6.x
+
+; Information added by drupal.org packaging script on 2009-05-08
+version = "6.x-1.2"
+core = "6.x"
+project = "trackback"
+datestamp = "1241800900"
+

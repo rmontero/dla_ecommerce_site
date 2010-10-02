@@ -1,0 +1,82 @@
+<?php
+// $Id: googtube.module,v 1.4.2.2 2010/03/06 00:01:12 alexandreracine Exp $
+// vim: set filetype=php expandtab tabstop=2 shiftwidth=2 autoindent smartindent:
+
+function googtube_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#googtube':
+      $output = '<p>'. t('Googtube is a filter module that automatically converts youtube and google video urls into embedded code.  Useful if users want to post videos easily.') .'</p>';
+      $output .= t('<p>Use Input Formats to enable the googtube filter</p>
+<ol>
+<li>Select an existing Input Format or add a new one</li>
+<li>Configure the Input Format</li>
+<li>Enable googtube filter and Save configuration</li>
+<li>Rearrange the weight of the googtube filter depending on what filters exist in the format. (Before Url Filter and after HTML works for me)</li>
+</ol>');
+      $output .= t('<p>You can</p>
+      <ul><li>enable the googtube in an input format from <a href="%admin-filters">administer &gt;&gt; Input Filter</a>.</li></ul>', array('%admin-filters' => url('admin/filters')));
+      $output .= '<p>'. t('For more information please read the configuration and customization handbook <a href="%googtube">googtube filter page</a>.', array('%googtube' => 'http://www.drupal.org/handbook/modules/googtube/')) .'</p>';
+      return $output;
+  }
+}
+
+function googtube_filter_tips($delta, $format, $long = false) {
+  return t('Youtube and google video links are automatically converted into embedded videos.');
+}
+
+function googtube_filter($op, $delta = 0, $format = -1, $text = '') {
+  switch ($op) {
+    case 'list':
+      return array(0 => t('googtube filter'));
+
+    case 'description':
+      return t('Youtube and google video links are automatically converted into embedded videos.');
+/* no settings that work yet
+    case 'settings':
+        $form['filter_googtube'] = array('#type' => 'fieldset', '#title' => t('googtube filter'), '#collapsible' => TRUE, '#collapsed' => TRUE);
+        $form['filter_googtube']['googtube_include_link'] = array(
+          '#type' => 'checkbox',
+          '#title' => t('Include the original link below the video?'),
+          '#default_value' => variable_get('googtube_include_link_'. $format, 0),
+          '#description' => t(''),
+          );
+        return $form;
+      break;
+*/
+    case 'process':
+      $text   = ' ' . $text . ' ';
+
+      //youtube regex
+      $text = preg_replace_callback('#(((http://)?)|(^./))(((www.)?)|(^./))youtube\.com/watch[?]v=([^\[\]()<.,\s\n\t\r]+)(?![^<]*</a>)#i', 'googtube_youtube', $text);
+
+
+      //google video regex
+      $text = preg_replace_callback('#(((http://)?)|(^./))(((www.)?)|(^./))video\.google\.(com|ca|co\.uk)(\.[a-z]+)?/videoplay[?]docid=([^\[\]()<.,\s\n\t\r]+)(?![^<]*</a>)#i', 'googtube_google', $text);
+
+      $text = substr($text, 1, -1);      
+      return $text;
+
+	case 'no_cache':
+	  return false;
+
+    default:
+      return $text;
+  }
+}
+
+function googtube_youtube($match) {
+  $parsed_url = parse_url(check_url($match[0]));
+  parse_str($parsed_url[query], $parsed_query);
+  $youtube_id = $parsed_query['v'];
+  return '<object width="425" height="350"><param name="movie" value="http://www.youtube.com/v/' . $youtube_id . '"></param><param name="wmode" value="transparent"></param><embed src="http://www.youtube.com/v/' . $youtube_id . '" type="application/x-shockwave-flash" wmode="transparent" width="425" height="350"></embed></object>';
+}
+
+function googtube_google($match) {
+  $parsed_url = parse_url(check_url($match[0]));
+  parse_str($parsed_url[query], $parsed_query);
+  $googlevideo_id = $parsed_query['docid'];
+  isset($parsed_query['hl']) ? $googlevideo_hl = '&hl=' . $parsed_query['hl'] : $googlevideo_hl = '';
+  return '<embed style="width:400px; height:326px;" id="VideoPlayback" type="application/x-shockwave-flash" src="http://video.google.com/googleplayer.swf?docId=' . $googlevideo_id . $googlevideo_hl . '" flashvars=""> </embed>';
+}
+
+?>

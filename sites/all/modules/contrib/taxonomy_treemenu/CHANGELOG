@@ -1,0 +1,632 @@
+// $id$
+
+
+Taxonomy Treemenu for 6.x 2009-10-12
+------------------------------------
+V7 prob 1. Change admin message.
+Chng: Admin message for page mlid urls.
+
+Taxonomy Treemenu for 6.x 2009-10-12
+------------------------------------
+V7 prob 1. Bugfix.
+Bug : Update is trying to access menu_links - wrong table.
+
+Taxonomy Treemenu for 6.x 2009-10-12
+------------------------------------
+V7 prob 1. Two bugfixes and new expanding menu capabilities.
+Feat: #593706 BayouBill, Show page URL in Admin display.
+Bug : Languages not showing in admin display.
+New : Admin Display title strings now translatable (far more to do, tho').
+Feat: 'Can it be expanded?' display in admin.
+New : Admin for block menu expansion.
+Feat: Block menus can be expanded.
+New : Amin for page expansion
+New : Page expansion urls.
+Feat: Expanded page links.
+Feat: Duplicate items in term only paged expanding menus.
+Chng: Duplicate elements should place before node lists.
+Bug : Nodes should not be retargeted in self-referenced page menus.
+Chng: In expanding menus, nodes should show only on the active path.
+Feat: enable css in self referenced menus.
+Bug : Leaf not rendered in live link in term-only self-referenced menus.
+Feat: Remove node counts from duplicate term items.
+Bug : #598020 SamHassel, Undefined Index PHP Notices
+Chng: Removed 'type' field, replaced with 'page_urls_to_mlid'
+Chng: Hide admin extended url option, including DB update to 0.
+
+
+
+Taxonomy Treemenu for 6.x 2009-10-01
+-----------------------------------
+V7 ALPHA4. Bug fix on node counting and PostGre incompatibility.
+Bug: #591938 Quoting incompatibility with Postgre, from Adonix.
+Bug: #591914 Node counts showing zero (when nodes not showing), from BayouBill.
+May also relate to #590300 Garbage in tree branches and #590292 Selecting "Hide term links with no nodes attached" results in empty menu.
+
+
+Taxonomy Treemenu for 6.x 2009-09-28
+-----------------------------------
+V7 ALPHA3
+Bug: #590284 tlineage field not established on fresh install
+
+
+Taxonomy Treemenu for 6.x 2009-09-27
+-----------------------------------
+V7 ALPHA2. Fix the v7 install and reorganize mangled changelog.
+Bug : V7 hook_update_n not returning array.
+Chng: Straighten out mangled CHANGELOG.
+
+
+Taxonomy Treemenu for 6.x 2009-09-24
+-----------------------------------
+V7, probably. Addition of tlineage and depreciation of menu roots, mainly.
+Updt: code to transfer lineage from menu_links field 'link_path' to 'tlineage'
+New : menu create/delete using lineage and no hidden root.
+Bug : Unnecessary root builds when existing items present.
+Bug : For root links, 'reset link opts' toggle in reverse.
+Bug : hook_taxonomy() code sometimes confuses paths.
+Chng: hook_taxonomy() from lineage field.
+Chng: Tree render from lineage field.
+Chng: Stripped the node link builder.
+Chng: Term path and term title to independant functions.
+Updt: Access functions for new hard modified menu links.
+Bug : Node counts showing HTML.
+Bug : Admin structural changes not working.
+New : Don't do a rebuild if admin changes not structural.
+New : Cache clearance is more intellgent and efficient.
+Bug : Field has_children set wrong.  Less important than you might think, but throwing errors in DHTML Menu.
+New : Moderately intelligent hook_taxonomy link title updating.
+Chng: Lineage more robust with new (voc:///) form.
+Chng: breadcrumbs and lineage.
+Chng: page title html to make more Drupal.
+New : tiny css file taxonomy-treemenu-page.css.
+New : Added BayouBill's contribution to the Views default.
+Bug : Node counts occassionally don't work, especially with localization.
+New : Silly/effective node counter.
+Bug : HTML showing with new node counter.
+Bug : Descendant node count disappeared in new node counter.
+New : Node builder more efficient if looks up right translation. Fix for alternate URLs.
+New : Translation staus added to admin data display.
+New : Much new translation help, and a picture (wrong, but a start).
+Bug : Tree builder should only build in default language.
+New : Admin for translation, and in place translation help.
+Bug : Silly, sets to '' in new langauge picker.
+New : language picker in admin.
+New : Translation works for different types of term vocabulary.
+Bug : error in default alnguages for admin.
+New : menus should work with one lang (LANGUAGE) taxononomies.
+Chng: node translation to the query builder.
+Bug : New node counter not summating properly on sub-branches.
+Bug : No browser title to treemenus (How come nobody mentioned THAT?)
+Bug : t() being called 3 times (not as bad as not at all, but still...).
+Feat: Remove empty terms.
+Bug : unchecked descriptions on treemenu pages.
+Chng: Title and HTML themeing could be more consitent.
+Chng: Single menu pages should use drupal_set_title.
+
+
+Taxonomy Treemenu for 6.x 2009-08-27
+-----------------------------------
+Version 6 Rev 4. Bugfix, and new database fields.
+Bug: #573494 (Stuart) Table prefix brackets missing.
+Updt: database to add tlineage field to menu_links, and update schema.
+Updt: database to add 'translation_mode', 'language',  and 'path_urls' fields.
+
+
+Taxonomy Treemenu for 6.x 2009-08-27
+-----------------------------------
+Version 6 Rev 4. Bugfix, and new database fields.
+Bug: #573494 (Stuart) Table prefix brackets missing.
+Updt: database to add tlineage field to menu_links, and update schema.
+Updt: database to add 'translation_mode', 'language',  and 'path_urls' fields.
+
+
+Taxonomy Treemenu for 6.x 2009-08-27
+-----------------------------------
+Version 6 Rev 3.
+Bug: #558202 Menu pages showing duplicate titles.
+
+
+Taxonomy Treemenu for 6.x 2009-08-27
+-----------------------------------
+Version 6 Rev 2.
+Bug: #558202 Checkbox selection "Term pages include the nodes from descendant terms" is not saved.
+
+Taxonomy Treemenu for 6.x 2009-08-26
+-----------------------------------
+Version 6 Rev 1 candidate.
+Bug: #558202 New menus have malformed SQL.
+
+
+Taxonomy Treemenu for 6.x 2009-08-26
+-----------------------------------
+Blew the cvs tagging, and added a couple of missing help files.
+
+
+Taxonomy Treemenu for 6.x 2009-08-26
+-----------------------------------
+Version 6 Rev 0 candidate. Lots of new database fields, and BayouBill's descendant node option.
+Bug : Taxonomy Redirect won't undo and reverts extended URLs to stock. Decided - not our issue, but note added to help.
+Most of the following relates to #558202
+New : Term paging extended to handle multiple tids.
+New : Longish help entry on paging Taxonomy Treemenus through other modules.
+Updt: x.install extended by four fields, update hook, and some new admin too.
+Dprt: Query builder caching. Sadly.
+New : Query builder extended to handle multiple tids.
+New : Build menu paths with multiple tids, when required.
+New : Node counts include descendant terms also.
+New : In admin, move node descendants out of special options.
+New : Add internal renderer to overview help.
+
+
+Taxonomy Treemenu for 6.x 2009-08-16 (stage 2.2)
+-----------------------------------
+Version 5 Rev 4
+New : Page for overview help table, and a start on them.
+New : Substantial restructuring and parenting of help pages.
+New : Broke the overview help tavbles into subject areas.
+New : Term theme now has its own variable for setting items per page. Plus admin and help.
+Dprt: Currently unused DHTML options admin commented out (with notes).
+New : Overview tree rebuilt by function groups, not menu type, and indexes added.
+New : Tried to do something about the admin display css.
+Updt: 'enabled' in menu link overview now superficially tested as ok.
+New : Menu link overview updated to reflect testing, and remove expand option.
+New : Several lines of unused code commented out from menu link overview code.
+Bug : Treemenu overview changes applied to simple menus too.
+Chng: Treemenu overview from general to id hooks.
+Chng: Vocab and tid finders extracted from tree modify functions, neater.
+Chng: #557628: Add a module invoke to respect hook_term_path(), reported by jeffschuler.
+New : Added more vocab data to admin display.
+
+
+Taxonomy Treemenu for 6.x 2009-08-16 (stage 2.2)
+-----------------------------------
+Version 5 Rev 3. Bugfixer.
+Bug : Another call by reference, this time in admin.  Reported by adamo.
+
+
+Taxonomy Treemenu for 6.x 2009-08-16 (stage 2.1)
+-----------------------------------
+Version 5 Rev 2. Bugfixer.
+Bug : Several new function calls carrying call by reference marks. Reported by stoltoguzzi.
+Bug : Menu overview retrieving menu name data from depreciated variable.
+
+
+Taxonomy Treemenu for 6.x 2009-08-16 (stage 2)
+-----------------------------------
+Version 5 Rev 1 stage commit. Lots of help, theme helper functions, usability and admin tweaks.
+New : considerable information into template-and-theme-code help.
+New : Helper function for discovering css files.
+New : Yet more work on templating and code help. 532 lines now!
+Chng: find_css bails out if no fid array provided.
+Chng: Remove menu root from breadcrumb, as it makes little sense at THIS point in development.
+Chng: db_rewrite_sql added to query, so other modules can play if they want.
+New : term lists in unformatted carry extended url info.
+Chng: help on admin buttons done by more flexible js inject method.
+New : underwhelming but nonetheless informative input disabling (more to come, if anyone cares).
+Chng: in admin, fieldset the advanced options, not the node stuff.
+New : Node counts are back.
+New : cvs commit of new files.
+
+Taxonomy Treemenu for 6.x 2009-08-10 (stage 1)
+-----------------------------------
+Version 5 Rev 2 BETA stage commit. Lots of help, internal theme written and enabled.
+New : Help on theme/template code.
+New : Support functions for theme/template code
+Bug : admin for 'term as links' is displayed when veiws enabled, not disabled.
+New : Started help on styling reference.
+New : internal term theme coded and enabled.
+Dpct: most old preprocessors/temes functions associated with term page theming.
+New : enabled admin for term theme.
+
+
+Taxonomy Treemenu for 6.x 2009-08-09 (part 8.7)
+-----------------------------------
+BETA 3 release for Version 5. Unswitched-off functionality bug.
+Bug : taxonomy_treemenu.pathauto.inc missing. http://drupal.org/node/544110. Thanks siweb for report.
+
+
+Taxonomy Treemenu for 6.x 2009-08-08 (part 8.6)
+-----------------------------------
+BETA 2 release for Version 5. Serious user bug hanging over from Version 4.
+Bug : Nodes not showing for non-privledged users on extended menus. Node is now fully loaded in url.
+
+
+Taxonomy Treemenu for 6.x 2009-08-08 (part 8.5)
+-----------------------------------
+ALPHA release candidate for Version 5. Minification, an install bug, and tackled that new version of DHTML Menu.
+Chng: Several tweaks to messages, particularly when NOT using Advanced Help.
+New : On install, always set root selector to 'option' style.
+New : Minified json.js. Basic tested as ok.
+Bug : When no menus, menu overview returning 'warning: in_array() [function.in-array]: Wrong datatype for second argument in /home/robert-web/drupal_playground/sites/all/modules/taxonomy_treemenu/taxonomy_treemenu.module on line 1028.'. Load_all_menu_names() removed.
+Bug : Partial fix, untested: treemenu options added to form['opts'] variable for non-js browsers.
+Chng: DHTML menu options hidden in response to DHTML Menu 6.x-3.2
+New : Install message about DHTML Menu.
+New : Extended what-is help to mention modules
+New : Enabled view-integration help.
+
+
+Taxonomy Treemenu for 6.x 2009-08-03 (part 8.4)
+-----------------------------------
+ALPHA release candidate for Version 5. Oops! Forgot the jpg in help/images.
+Chng: lots_of_menu.jpg cvs add.
+
+
+Taxonomy Treemenu for 6.x 2009-08-03 (part 8.3)
+-----------------------------------
+ALPHA release candidate for Version 5. cvs work.
+Chng: added views/plugins and views handlers and contents to cvs.
+Chng: name of 'views_handlers' folder to 'handlers'.
+Chng: Added Advanced Help files to cvs.
+Chng: added Advanced Help images folder and contents to cvs.
+
+
+Taxonomy Treemenu for 6.x 2009-08-03 (part 8.2)
+-----------------------------------
+WARNING:THIS VERSION IS DEVELOPMENT CODE. Stage release of Version 5. cleaning and miscellaneous jobs.
+Chng: Another loader gone(menu_all_data2()).
+New : General principles, whatis and quickstart into help files.
+New : Added installation notes to the what-is help.
+New : Help buttons for advanced help.
+Chng: position of DHTML code when page rendering, so they can have titles.
+Chng: most page hooks and preprocessors permanently disabled.
+Chng: capitalise title
+Chng: cvs remove old help icons.
+
+
+Taxonomy Treemenu for 6.x 2009-08-02 (part 8.1)
+-----------------------------------
+WARNING:THIS VERSION IS DEVELOPMENT CODE. Stage release of Version 5. Bug nipping from moving round new code. As you can see.
+New : Static cached the query builder.
+Bug : Query builder using wrong joins.
+Bug : Query builder not using filters.
+New : Added menu rebuilds to hook_enable().
+Bug : added menu_delete to hook_ininstall();
+Bug : Added variable deletion to hook_uninstall, and some older deletion also.
+Bug : Branch selector logic is upside down.
+Bug : .. which caused non-creation of menus.
+New : Branch selector help. Not enabled.
+New : 'Help us' help file.
+New : Added submit message afor new menu creation.
+Bug : memus with extended urls not showing nodes.
+Bug : lower weighted fields more significant, as stated in documentation.
+Bug : Breadcrumb not multiple on nodes on multiple crumb, multiple node menus
+Bug : DHTML non basic menus not showing in sidebars.
+Bug : Removed db_rewrite_sql from hook_taxonomy call.
+Bug : taxonomy changes not moving childen.
+Bug : Taxonomy parental increase not changing menu.
+Chng: Cleaner code in update_term_links().
+Bug : cross menu isoltaion of link rebuilding for taxonomy changes. Also fixes...
+Bug : Not deleting on many to one parenting.
+
+
+Taxonomy Treemenu for 6.x 2009-07-30 (part 8)
+-----------------------------------
+WARNING:THIS VERSION IS DEVELOPMENT CODE. Stage release of Version 5. Several largish code changes in main module file, mainly brought about by massive depreciated code pruning.
+Bug : New id loader doesn't return id.
+New : Experimental 'led' small help button.
+New : Advanced Help backup menu router and paging.
+New : Advanced help general status message.
+Chng: URL routing reverted to loaders after failure of wildcard solution.
+New : Multiple breadcrumbs re-enabled and now orking on stock pages. Sort of.
+New : Advanced Help on multiple breadcrumbs. Sort of.
+New : Wrote untested 'childTids' and 'allTids' functions for the branch data class. For whatever, because it was there?
+Updt: Massive depreciated code pruning.
+Bug : deleted term load function replaced with tt_get_term()
+New : Tree caching working and switched on. Hurrah.
+Bug : block code should be delivering NULL to tree builders.
+Chng: un dpm() the module.
+
+
+Taxonomy Treemenu for 6.x 2009-07-24 (part 7.1)
+-----------------------------------
+WARNING:THIS VERSION IS NOT WORKING CODE. Stage release of Version 5. Massivly uninspiring Views work. Basic exxtended URL views template finished.
+New : Views field, 'menu name'.
+New : Join to custom_menu
+New : Subvalues stripped also in 2SQL
+New : Views argument for filter and sort by treemenu options.
+New : Both arguments validated.
+New : lots of junk and failed experiments added to Views. Left intact, in hope.
+New : Views template for extended URLs
+New : Brief Help added - Views integration.
+Updt: Old views files removed from cvs.
+
+
+Taxonomy Treemenu for 6.x 2009-07-24 (part 7)
+-----------------------------------
+WARNING:THIS VERSION IS NOT WORKING CODE. Stage release of Version 5. First poke at term structuring, in Taxonomy and Views.
+New : Admin and help for new structured_terms and term_theme options.
+New : 'Overview' added to the help.
+Feat: Enabled term structuring for Drupal term view.
+Feat: Paging node return.
+Feat: First ever Views filter, by menu name.
+Feat: and a 'by menu name' Views sort.
+New : 'Views' folder.
+Del : older views files.
+
+
+Taxonomy Treemenu for 6.x 2009-07-22 (part 6)
+-----------------------------------
+WARNING:THIS VERSION IS DEVELOPMENT CODE. Stage release of Version 5. Breadcrumbs, multiple breadcrumbs, help and admin added.
+New : Extensive help pages on template suggestions and custom urls.
+Bug : protection prevented creation of new menus.
+Bug : Single node breadcrumb not protecting against multiple node attachment.
+Chng: added menu root to breadcrumbs.
+Bug : term paging error, menu item title changed to callback.
+Feat: new code for multiple breadcrumb on nodes.
+Bug : breadcrumb items accumulating rather than being reset.
+Bug : Drupal breadcrumb locked for multiple breadcrumbs.
+Bug : Node paging should check for multiple terms AND nodes.
+New : extensive help on menu ambiguity and multiple breadcrumbs.
+New : admin for multiple breadcrumb option.
+Bug : term links showing unmodified. Oops.
+New : separate and extended 'example' help page
+Chng: YAL (Yet Another Loader). Menu items switched from individual loaders to generic one-item loader and wildcards.
+Bug : Multiple breadcrumbed menus have no base trail.
+
+
+Taxonomy Treemenu for 6.x 2009-07-17 (part 5.1)
+-----------------------------------
+Several files which should be committed.
+New: added /misc to cvs
+New: added icons to cvs
+New: added help-icon file to cvs
+New: added options.forms to cvs
+New: added /help to cvs
+
+
+Taxonomy Treemenu for 6.x 2009-07-17 (part 5)
+-----------------------------------
+WARNING:THIS VERSION IS NOT WORKING CODE. Stage release of Version 5. First prefix URLs, and some admin fixes.
+Feat: Paged nodes and terms using ttm/[menu-name] prefix.
+Updt: loader soes some verification and external file loading.
+Chng: DHTML options in admin are now a radio.
+Bug : Really a 'not generalized' code error. Overridden input element (checkbox help) won't function without asserting '#return_value'. Horrific, and not mine.
+Bug : DHTML Options not correctly defaulting.
+New : Admin for URL menu prefix.
+Chng: prefixed node links working in new menus.
+New : Particular loaders and menu items for prefixed URL nodes.
+Chng: New link modifier, and wired in. Much lighter.
+New : Simple but proper title callback for menu items.
+New : Particular loaders and menu items for prefixed URL terms.
+New : Admin form gets an 'Advanced Help' info message.
+Bug : Help checkboxes not passing values (need special properties).
+New : Altered DHTML admin to add a 'none' option.
+New : Admin form now shows tid/vid names of root item.
+New : Admin form dispalys multiple status of menu.
+New : menu tree functions altered to better reflect calls
+
+
+Taxonomy Treemenu for 6.x 2009-07-14 (part 4)
+-----------------------------------
+WARNING:THIS VERSION IS NOT WORKING CODE. Stage release of Version 5. Heavy reworking of opts (unfinished) and DHTML considered.
+Updt: block functions handle database, not variable.
+Updt: Some raw implementations of dhtml on block and page.
+New : The first structured query builder. Handles node descendants.
+Chng: ttm_sort order element generalized to ttm_toggle.
+Chng: Opts much more generalized
+Bug : Opts sending NULL to form.
+New : Got bored and added some fields type options. Don't do anything, yet.
+Chng: Opts handling heavily reworked, to reflect Drupal Form API
+
+
+Taxonomy Treemenu for 6.x 2009-07-7 (part 3.1)
+-----------------------------------
+WARNING:THIS VERSION IS NOT WORKING CODE. Stage release of Version 5. Started work on rendering.
+New : menu cache class.
+Bug : Not retriving all possible caches
+New : generalized treeload function
+New : Yet Another Loader.
+New : Some preliminary Advanced Help text.
+New : Advanced options class. Bit crude at present.
+New : menu render path. More streamlined, at least for now.
+Updt: basic nodes and terms now working in static menus.
+Chng: treemenu theme from template to function. Removed template.
+Bug : CHANGELOG not being versioned.
+
+
+Taxonomy Treemenu for 6.x 2009-07-3 (part 2.3)
+-----------------------------------
+WARNING:THIS VERSION IS NOT WORKING CODE. Stage release of 4.3/Version 5? Wanted help on the admin form, and got it.
+New : Enabled Advanced Help.
+New : New admin help buttons. Hacked from Advanced Help.
+New : Special checkboxes and tabs for Advance Help.
+Chng: Tried to do something about the admin css.
+Chng: Renamed form_data.js to admin_form_handler.js
+
+
+Taxonomy Treemenu for 6.x 2009-07-1 (part 2.2)
+-----------------------------------
+WARNING:THIS VERSION IS NOT WORKING CODE. Stage release of 4.3/Version 5? Removed old functions for form handling, and some styling and templates.
+New : ttm_tab_container element.
+Del : old form element 'taxonomy_treemenu_options'
+Del : old opt form handlers
+Del : old opts provision
+Updt: admin to reflect new database entries.
+Del : second ttm loader.
+Del : old variable loader.
+Chng: overhaul hook_submit() handling.
+Chng: New jQuery moved into old file form_data.js
+
+
+Taxonomy Treemenu for 6.x 2009-07-1 (part 2.1)
+-----------------------------------
+WARNING:THIS VERSION IS NOT WORKING CODE. Stage release of 4.3/Version 5? CVS fix, tt-ui-edit-tab deleted and several custom form elements removed.
+Oops. Previous comit only changed the .js files. So the previous commit
+CHANGELOG entry applies to this commit, not that one. Also includes,
+
+Bug : Added cvs revision tag to JSON file? Will this fix work after the event?
+Del : Old form elements, checkbox/checkboxes/sort_order_selector/tab_display/tab (most have new replacements).
+Del : file, tt-ui-edit-tab.tpl.php
+
+
+Taxonomy_tremenu for 6.x 2009-07-1
+-----------------------------------
+WARNING:THIS VERSION IS NOT WORKING CODE. Stage release of 4.3/Version 5? Contains the new links options handling code and admin form.
+Admin form now includes the swaprowDrag() feature and JSON throughput.
+Plus some bugfixes/new code to failitate testing.
+
+Chng: Some menu items and basic loaders now do db data.
+Bug : options is twice serialized.
+Chng: new class for data loading
+Bug : Depth not handled correctly on treebuilding and rebuilding
+Bug : Edit forms not getting info from new db info
+Chng: Base router item changed to 'drupal_not_found'
+Feat: parameters to reset link data (refinement of previous release)
+Feat: newly extended 'rebuild menu' admin handles partial rebuilds.
+Chng: 'ttm_div' 'ttm_tab' 'ttm_display' menu elements.
+Chng: class based options defaulter. Much better!
+Chng: JSON throughput on the use options in the admin form.
+Bug : new checkboxes not building proper ids (#input = TRUE!)
+Feat: Built a drupal_js_dragtable. And it WAS a 'feat'.
+Feat: So unpolished was the above, replaced with new sustom JS - swapboxDrag().
+Chng: removed rubbish prameters on swapboxDrag()
+Chng: javascript now locates options using div attribute 'title'.
+Chng: class orientated internal option handling.
+Updt: Some checkboxes and selectors enabled on new form
+Updt: ttm form elements now unified in approach. 'ttm-div' is new.
+Chng: Move to class based autobuilding of node options. Quite a relief.
+Bug : basic ttm loader not loading (not properly updated)!
+Updt: all new checkboxes now working. Save/load to db working.
+
+Chng: JSON/swapboxdrag.js files added to cvs.
+
+
+Taxonomy_tremenu for 6.x 2009-06-19
+-----------------------------------
+WARNING:THIS VERSION IS NOT WORKING CODE. It should generate links from admin, though.
+Stage release of release 4.3/Version 5? Heavy reworking of data retrieval code, while adding
+code for some ongoing concerns (menu data stored in the db, new path roots).
+Not fully tested, but in many ways improved, or at least addressed. Some older
+'menu builders' code tidying.
+
+Feat: Schema proposal for data storage
+Feat: Staged disable/enable, uninstall/install code
+Feat: Some functions use new schema
+Chng: Some functions now use 'ttprnts' as the URL root (better for namespace than 'category').
+Chng: Branch code now part of a class
+Fix: Taxonomy weighing now respected in link building
+Fix: Has_children should be built properly.
+Fix: User change to multiple heirarchy now works through code (subtrees built and destroyed)
+rather than through a rebuild
+Chng: Taxonomy changes now do simple update, if tat is all that is required.
+Updt: Some Taxonomy_router stuff removed.
+
+
+Taxonomy_treemenu for 6.x, 2009-06-11
+-------------------------------------
+WARNING:THIS VERSION IS NOT WORKING CODE. Legacy Release. For the preservation of old code. Several changes, some to be abandoned. The more important ones, which may be preserved one way or another...
+
+Fix : Missing internal renderer.
+Feat: Light Pathauto integration.
+
+
+
+Taxonomy_treemenu for 6.x, 2009-04-23
+-------------------------------------
+Experimental Release. Several changes. Light Views integration. Bugs squashed (Thankyou Apollo610). Overdue uninstall hook changes.
+
+Fix : Tagged menus not selectable. Report by Apollo610.
+Feat: Light and experimental Views integration.
+Feat: Default Views views.
+Dpct: All reliance on Taxonomy Router.
+Chng: Radical overkill 'uninstall' hook.
+
+
+Taxonomy_treemenu for 6.x, 2009-04-01
+-------------------------------------
+Bug fix release.
+
+Fix : Call by reference in admin 'submit' spewing warning. Removed reference.
+Fix : Blocks spew warnings when there is no treemenu at all. Protection code added.
+
+Both bugs, ref issue #432318 Apollo610 - Thanks due for detailed, intelligent,
+explanations supplied.
+
+Fix: Blocks displaying machine names, not titles.
+
+
+Taxonomy_treemenu for 6.x, 2009-04-01
+-------------------------------------
+Basicly, gains the new node sorter in code, and new admin for that.
+
+Feat: Sort nodes.
+Feat: Dinky little JS form for sort feature.
+Chng: Edit menu submit. Clearer. Maybe less buggy?
+Chng: Much admin tidy.
+
+
+Taxonomy_treemenu for 6.x, 2009-04-01
+-------------------------------------
+Too much to summarise. New renderer.
+
+Feat: Expanding menus (not Javascript!).
+Chng: Node links rendered straight from taxonomy, for efficiency.
+Chng: Block promotion and DHTML altered.
+Fixs: Breadcrumbs now accurate.
+Chng: Breadcrumbs reference menus.
+Chng: Access altered to stock permissions.
+Feat: Hidden/expand links now fully functional.
+Feat: Root links now hidden.
+Feat: Themeing for linking menus.
+Feat: Structured template suggestions.
+Feat: Caching partially enabled.
+Feat: Duplicate link for paged no-node menu term links.
+Dprt: Root re-route.
+Dprt: Vocab references in user URLS.
+Dprt: Disabled links.
+
+
+Taxonomy_treemenu for 6.x, 2008-11-5
+-------------------------------------
+Chng: New renderer for nodes.
+Feat: 'Number of Nodes' option.
+Chng: Admin for view renderer.
+Feat: Tree caching enabled.
+Feat: updated help and new Quickstart file.
+Chnge: some render options moved into menu construct loop.
+Feat: leaf nums get <span> and nodes use l().
+
+
+Taxonomy_treemenu for 6.x, 2008-10-30
+-------------------------------------
+css file and load into page template preprocessor.
+
+
+Taxonomy_treemenu for 6.x, 2008-10-30
+-------------------------------------
+Updt: Mod for renderer
+Feat: New page template
+
+
+Taxonomy_treemenu for 6.x, 2008-10-27
+-------------------------------------
+Chng: Rewrite the renderer to be more comprehensive, and obviously sanitised.
+Feat: New template file for menus.
+
+
+Taxonomy_treemenu for 6.x, 2008-10-27
+-------------------------------------
+Chng: Replace 'disable but re-enable' config option with checkbox.
+Chng: Reconfigure admin render options view
+Feat: Teminal term re-enable
+Bug : Rename messages in CHANGELOG for right module!
+
+
+Taxonomy_treemenu for 6.x, 2008-10-25
+-----------------------------------
+Initial release of taxonomy_treemenu module to HEAD
+Chng: Fake loader.
+Chng: Page data load via above.
+Chng: Menu admin proper defaults.
+Chng: '#Require' branch selection.
+Chng: Attempt to signal admin 'required' elements.
+Feat: Specific admin menu title via menu callback.
+
+
+Taxonomy_treemenu for 6.x, 2008-10-25
+-----------------------------------
+Initial release of taxonomy_treemenu module to HEAD
+
+21/05/08
+Initial version.

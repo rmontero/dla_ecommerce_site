@@ -1,0 +1,6 @@
+/**
+ *  Fix the legend categories tag thing.
+ */
+div.node fieldset legend {
+  width: 70px;
+}

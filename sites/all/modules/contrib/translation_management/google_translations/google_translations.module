@@ -1,0 +1,105 @@
+<?php
+
+// $Id:
+
+
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+/**
+ * hook overrides for google translation service
+ */
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+
+function google_translations_translation_service() {
+  global $base_url;
+  return array ('google_translations' => array('name' => 'Google Translate',
+                      'logo' => $base_url . '/' . drupal_get_path('module', 'google_translations') . '/images/google_translate.png'));
+}
+
+function google_translations_get_translators($from, $to) {
+
+  // We only have a single translator - "Machine" translation  
+  return array(array('id' => 1, 'name' => 'Machine'));  
+}
+
+function google_translations_translators_setup_url($from, $to) {
+  
+  // No setup url for google translation
+  return NULL;
+}
+
+function google_translations_get_translation_service_info() {
+  return '';
+}
+
+function google_translations_request_translation($rid, $from, $to, $previous_rid, $translator_id, $link_to = '', $title = '') {
+  $languages = locale_language_list();
+
+  $to = $to[0];
+  
+  // get all the fields and translate each one
+  
+  $fields = icl_translate_get_fields($rid);
+  $success = TRUE;
+  
+  foreach ($fields as $field) {
+    
+    // Skip untranslatable fields
+    if (!$field['field_translate']) {
+      continue;
+    }
+    
+    $field_data = unserialize($field['field_data']);
+    if (!empty($field_data)) {
+      if (strtolower($field['field_format']) == 'csv') {
+        $field_data = implode(', ', array_values($field_data));
+      }
+      
+      $translation = _google_translations_translate_language($from->language, $to->language, $field_data);
+      if ($translation != NULL) {
+
+        if (strtolower($field['field_format']) == 'csv') {
+          $field_data = explode(',', $translation);
+          $translation = array();
+          foreach($field_data as $data) {
+            $translation[] = trim($data);
+          }
+        }
+        
+        icl_translate_update_field_translation($rid, $field['field_type'], $translation, 1);
+      } else {
+        $success = FALSE;
+      }
+    }
+
+  }
+    
+  if ($success) {
+    icl_translate_process_translation($rid, $to->language);
+  
+    $message = t('Google translation to %lang', array('%lang' => $languages[$to->language]));
+    return array('service_rid' => $rid, 'status' => ICL_STATUS_SUCCESSFUL, 'message' => $message);
+  } else {
+    
+    $message = t('Google translation failed to %lang', array('%lang' => $languages[$to->language]));
+    return array('service_rid' => FALSE, 'status' => 0, 'message' => $message);
+  }
+  
+}
+
+function _google_translations_translate_language($from, $to, $text) {
+  $lp = strtolower($from). "|" . strtolower($to);
+
+
+  $in = file_get_contents("http://google.com/translate_t?langpair=" .urlencode($lp). "&text=" . urlencode($text));
+
+  $pattern = "/<span id=result_box.*?><span.*?>(.*?)<\/span>/";
+  preg_match($pattern, $in, $matches);
+  
+  if (isset($matches[1])) {
+    return $matches[1];
+  } else {
+    return NULL;
+  }
+}

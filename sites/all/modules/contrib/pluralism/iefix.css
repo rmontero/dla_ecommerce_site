@@ -1,0 +1,6 @@
+/**
+ *  Fix the area below the categories.
+ */
+div.node fieldset.collapsed {
+  margin-bottom: 15px;
+}

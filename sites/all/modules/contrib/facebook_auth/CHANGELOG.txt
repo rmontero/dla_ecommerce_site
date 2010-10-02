@@ -1,0 +1,7 @@
+Facebook Auth 6.x-1.2, 2008-12-13
+---------------------------------
+#345540 by halkeye: Fixed support for loging out of drupal and clearing
+  facebook session data.
+by halkeye: Updated module to support facebook-platform from 
+  http://svn.facebook.com/svnroot/platform/clients/packages/facebook-platform.tar.gz
+by halkeye: Style changes as per coder module

@@ -1,0 +1,19 @@
+; $Id: uc_views_bulk_operations.info,v 1.1.2.2 2009/06/30 08:54:23 madsph Exp $
+name = Ubercart Views with Bulk operations
+description = Create views on Ubercart data leverage the power of Bulk operations to allow views for management applications.
+dependencies[] = uc_views
+dependencies[] = views_bulk_operations
+package = "Ubercart - views"
+
+; Information added by drupal.org packaging script on 2008-06-19
+core = 6.x
+project = "uc_views_bulk_operations"
+datestamp = "1213888517"
+
+
+; Information added by drupal.org packaging script on 2009-12-16
+version = "6.x-3.0"
+core = "6.x"
+project = "uc_views"
+datestamp = "1260955563"
+

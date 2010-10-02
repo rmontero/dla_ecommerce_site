@@ -1,0 +1,104 @@
+<?php
+// $Id: noderecommendation.install,v 1.2.2.2 2009/06/01 16:07:42 hanoii Exp $
+
+
+/**
+ * Implementation of hook_schema().
+ */
+function noderecommendation_schema() {
+  $schema['noderecommendation_node'] = array(
+    'description' => t('Store per-node configuration.'),
+    'fields' => array(
+      'nid' => array(
+        'description' => t('Node ID'),
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'data' => array(
+        'description' => t('Serialized data of a pernode configuration.'),
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('nid'),
+  );
+
+  $schema['noderecommendation_defaults'] = array(
+    'description' => t('Store global defaults'),
+    'fields' => array(
+      'nrdid' => array(
+        'description' => t('Internal ID'),
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'data' => array(
+        'description' => t('Serialized data of a pernode configuration'),
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('nrdid'),
+  );
+
+  $schema['noderecommendation_defaults_terms'] = array(
+    'description' => t('Store global defaults terms'),
+    'fields' => array(
+      'nrdid' => array(
+        'description' => t('Internal ID'),
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'tid' => array(
+        'description' => t('Term ID'),
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('nrdid', 'tid'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function noderecommendation_install() {
+  // Create tables.
+  drupal_install_schema('noderecommendation');
+
+  drupal_set_message(t('Node Recommendation module was installed.'));
+}
+
+/**
+ * Implementation of hook_uninstall
+ */
+function noderecommendation_uninstall() {
+  // Remove tables.
+  drupal_uninstall_schema('noderecommendation');
+
+}
+
+/**
+ * Implementation of hook_requirements
+ */
+function noderecommendation_requirements($phase) {
+  $requirements = array();
+  // Ensure translations don't break at install time
+  $t = get_t();
+
+ if ($phase == 'runtime') {
+   if (db_result(db_query("SELECT COUNT(*) FROM {noderecommendation_defaults}")) == 0) {
+      $requirements['noderecommendation'] = array(
+        'title' => $t('Node Recommendation Default'),
+        'description' => $t('There is no default configuration set. Unless you want this module to work only on a per-node basis, you need at least one default set. Please go to !settings to create a default.', array('!settings' => l($t('Node Recommendation'), 'admin/content/noderecommendation'))),
+        'severity' => REQUIREMENT_WARNING,
+        'value' => $t('Not configured.'),
+      );
+   }
+ }
+
+ return $requirements;
+}

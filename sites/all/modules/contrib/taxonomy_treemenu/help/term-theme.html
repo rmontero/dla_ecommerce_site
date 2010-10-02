@@ -1,0 +1,38 @@
+<!-- $Id: term-theme.html,v 1.3 2009/08/24 20:20:03 rcrowther Exp $ -->
+
+<h3>Summary</h3>
+<ul>
+<li>
+An internal theme for term lists.
+</li>
+<li>
+Neutral styling, similar to the Views 'Unformatted' style.
+</li>
+<li>
+Fully templated using functions, so fast but quite easy to customize.
+</li>
+</ul>
+
+<h3>Description</h3>
+<p>
+A term page theme which is, initially, a list of links wrapped in 'divs'.
+Replaces the term theme provided by Druapl.
+Similar to the Views 'Unformatted' style, but without the overhead of running Views.
+Further styling through templates and css very easy.
+</p>
+<p>
+As with the stock Drupal style, the list is paged.
+However, as it is links only, this theme can hold many more items per page than the usual taxonomy term theme.
+'Items per page' is controlled by a setting which you can find at 'Administer > Content Management > Post Settings' (?q=admin/content/node-settings).
+</p>
+
+<p>
+<img alt="example of internal term theme" src="path:images/internal_term_theme.jpg"/>
+</p>
+
+<p>
+Warning: Themed through simple functions, so please take care about protecting output - use check_plain() etc.
+</p>
+<p>
+See also <a href="&topic:taxonomy_treemenu/theme-and-template-reference&">theme and template reference</a>
+</p>

@@ -1,0 +1,387 @@
+<?php
+// $Id: pop_links.module,v 1.1.4.19 2008/09/05 08:54:00 sicjoy Exp $
+
+/**
+ * @file
+ *
+ * Uses the Voting API to rate external links by click traffic
+ *
+ * @ingroup pop_links
+ */
+
+/**
+ * TODO
+ *
+ */
+
+/**
+ * Implementation of hook_enable().
+ */
+function pop_links_enable() {
+  // direct the user to the module's settings page
+  $settings = l('settings', 'admin/settings/pop_links');
+  drupal_set_message("External Link Popularity has been enabled.  Visit the ".$settings." page to configure the module.");
+}
+
+/**
+ * Implementation of hook_disable().
+ */
+function pop_links_disable() {
+  // set variables to their default values
+  // for development purposes only *** remove before releasing ***
+  variable_set('pop_links_vote_life', 0);
+  variable_set('pop_links_block_size', 10);
+}
+
+/**
+ * Implementation of hook_help().
+ */
+function pop_links_help($path) {
+  switch ($path) {
+    case 'admin/help#pop_links':
+      return '<p>'.t('External Link Popularity uses the Voting API module to
+        rank nodes that contain external links.  Nodes are awarded points when
+        users follow the external link.  These points can be given a lifetime
+        to limit the scope of the rankings: e.g. most popular today, weekly,
+        etc.  Each user click is counted only once per voting period per node.
+        The module also provides a block showing the most popular nodes.').'</p>';
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function pop_links_perm() {
+  return array('record external click', 'access link popularity stats');
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function pop_links_menu() {
+  $items = array();
+
+  $items['admin/settings/pop_links'] = array(
+    'title' => 'External Link Popularity',
+    'description' => 'Configure the External Link Popularity module.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('pop_links_admin_settings'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer site configuration'),
+    //'menu_name' => 'pop_links',
+  );
+
+  $items['pop_links/handle'] = array(
+    'title' => 'NOOP',
+    'page callback' => 'pop_links_handle',
+    'access callback' => 'user_access',
+    'access arguments' => array('record external click'),
+    'type' => MENU_CALLBACK,
+    //'menu_name' => 'pop_links',
+  );
+
+  $items['admin/reports/pop_links_log'] = array(
+    'title' => 'External Link Popularity Log',
+    'description' => 'External Link Popularity Log',
+    'page callback' => 'pop_links_log',
+    'access callback' => 'user_access',
+    'access arguments' => array('access link popularity stats'),
+    //'menu_name' => 'pop_links',
+  );
+ 
+  $items['admin/reports/pop_links_summary'] = array(
+    'title' => 'External Link Popularity Summary',
+    'description' => 'External Link Popularity Summary',
+    'page callback' => 'pop_links_summary',
+    'access callback' => 'user_access',
+    'access arguments' => array('access link popularity stats'),
+    //'menu_name' => 'pop_links',
+  );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_init().
+ */
+function pop_links_init() {
+  global $user;
+  if ((arg(0) != 'admin') && _pop_links_track($user)) {
+    drupal_add_js(array('pop_links' => array('base_path' => base_path(),)), 'setting');
+    drupal_add_js(drupal_get_path('module', 'pop_links').'/pop_links.js', 'module');
+  }
+}
+
+/**
+ * Define the settings form.
+ *
+ * @ingroup forms
+ */
+function pop_links_admin_settings() {
+  $period = array(0 => t('Indefinite')) + drupal_map_assoc(array(300, 900, 1800, 3600, 10800, 21600, 32400, 43200, 86400, 172800, 345600, 604800), 'format_interval');
+
+  $form['pop_links_vote_life'] = array(
+    '#type' => 'select',
+    '#title' => t('Click Points Lifetime'),
+    '#description' => t('Enter the time before a click point is deleted.'),
+    '#default_value' => variable_get('pop_links_vote_life', 0),
+    '#options' => $period
+  );
+
+  $form['pop_links_stats_life'] = array(
+    '#type' => 'select',
+    '#title' => t('Statistics Lifetime'),
+    '#description' => t('Enter the time before the statistical data is deleted.'),
+    '#default_value' => variable_get('pop_links_stats_life', 0),
+    '#options' => $period
+  );
+
+  $form['pop_links_node_types'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Node types'),
+    '#description' => t('What node types should be monitored for external click traffic?'),
+    '#default_value' => variable_get('pop_links_node_types', array('page')),
+    '#options' => node_get_types('names'),
+  );
+
+  $form['pop_links_track_roles'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Tracking by role'),
+    '#description' => t('Only track the following roles. Leave empty for all roles. Admin pages are never tracked.'),
+    '#default_value' => variable_get('pop_links_track_roles', array(0, 0)),
+    '#options' => user_roles(),
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * AJAX handler function
+ */
+function pop_links_handle() {
+  if ($_REQUEST['operation']) {
+    $op = $_REQUEST['operation'];
+
+    if ($op == 'track_click') {
+      $nid = $_REQUEST['nid']; // node id where the external click took place
+      $url = $_REQUEST['url']; // the user is going to this URL (href)
+      $uid = $GLOBALS['user']->uid;
+      $hostname = $_SERVER['REMOTE_ADDR']; // user's ip address
+
+      // cast the vote using the Votingapi module
+      $vote = array();
+      $vote[] = array(
+        'content_type' => 'node',
+        'content_id' => $nid,
+        'value_type' => 'points',
+        'value' => 1,
+        'tag' => 'pop_links',
+        'uid' => $uid,
+        'vote_source' => $hostname,
+        'timestamp' => time()
+      );
+      votingapi_set_votes($vote);
+
+      // save click data to the statics table
+      db_query("INSERT INTO {pop_links_stats} VALUES(NULL, %d, '%s', %d, '%s', %d)", $nid, $url, $uid, $hostname, time());
+
+      //drupal_set_message("$nid $url $uid $hostname ".time());
+
+      // send acknowledge receipt
+      print 'ACK';
+      exit;
+    }
+  }
+
+  // send negative acknowledgement
+  print 'NAK';
+  exit;
+}
+
+/**
+ * Implementation of hook_block().
+ */
+function pop_links_block($op = 'list', $delta = 0, $edit = array()) {
+  switch ($op) {
+
+    case 'list':
+
+      $blocks[0]['info'] = t('Popular links');
+      return $blocks;
+
+    case 'view':
+
+      // fetch nodes with votes sorted most to least
+      $items = array();
+      $result = db_query(db_rewrite_sql("SELECT vc.content_id, n.title FROM {votingapi_cache} AS vc INNER JOIN {node} AS n ON vc.content_id = n.nid WHERE n.status = 1 AND vc.tag = 'pop_links' AND vc.function = 'sum' ORDER BY vc.value DESC LIMIT %d"), variable_get('pop_links_block_size', 10));
+      while ($data = db_fetch_object($result)) {
+        $items[] = l($data->title, 'node/'.$data->content_id);
+      }
+
+      // don't display the block if it is empty
+      if (!count($items)) {
+        return;
+      }
+
+      $block['subject'] = t('Popular links');
+      $block['content'] = theme('item_list', $items);
+
+      return $block;
+
+    case 'configure':
+
+      // allow the block admin to configure the size of the popular list
+      $form['pop_links_block_size'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Size of the popular list'),
+        '#size' => 5,
+        '#maxlength' => 5,
+        '#required' => TRUE,
+        '#element_validate' => array('pop_links_block_validate'),
+        '#default_value' => variable_get('pop_links_block_size', 10),
+        '#description' => t('Enter the the number of node links to list in this block.'),
+      );
+
+      return $form;
+
+    case 'save':
+
+      // save the custom block settings
+      variable_set('pop_links_block_size', $edit['pop_links_block_size']);
+
+      break;
+  }
+}
+
+/**
+ * validate block's custom config form
+ */
+function pop_links_block_validate($element) {
+
+  if (!is_numeric($element['#value']) || ($element['#value'] < 1)) {
+    form_error($element, t('You must enter an integer > 0.'));
+  }
+
+}
+
+function pop_links_log() {
+  $header = array(
+    array('data' => t('Timestamp'), 'field' => 'p.timestamp', 'sort' => 'desc'),
+    array('data' => t('Link'), 'field' => 'n.title'),
+    array('data' => t('User'), 'field' => 'u.name'),
+    array('data' => t('Hostname'))
+  );
+
+  $sql = "SELECT p.cid, n.nid, n.title, p.url, u.name, p.hostname, p.timestamp FROM {pop_links_stats} p LEFT JOIN {users} u ON u.uid = p.uid LEFT JOIN {node} n ON n.nid = p.nid" . tablesort_sql($header);
+
+  $result = pager_query(db_rewrite_sql($sql), 30);
+  while ($click_data = db_fetch_object($result)) {
+    $rows[] = array(
+      array('data' => format_date($click_data->timestamp, 'small'), 'class' => 'nowrap'),
+      _pop_links_format_item($click_data->title, $click_data->nid, $click_data->url),
+      theme('username', $click_data),
+      $click_data->hostname);
+  }
+
+  $output = theme('table', $header, $rows);
+  $output .= theme('pager', NULL, 30, 0);
+
+  return $output;
+}
+
+function pop_links_summary() {
+  $header = array(
+    array('data' => t('Clicks'), 'field' => 'cnt', 'sort' => 'desc'),
+    array('data' => t('Node Title/External Link'), 'field' => 'p.url')
+  );
+
+  $sql = "SELECT n.nid, n.title, p.url, COUNT(*) as cnt FROM {pop_links_stats} p LEFT JOIN {users} u ON u.uid = p.uid LEFT JOIN {node} n ON n.nid = p.nid GROUP BY n.nid, p.url" . tablesort_sql($header);
+
+  $result = pager_query(db_rewrite_sql($sql), 30);
+  while ($click_data = db_fetch_object($result)) {
+    $rows[] = array(
+      $click_data->cnt,
+      _pop_links_format_item($click_data->title, $click_data->nid, $click_data->url)
+    );
+  }
+
+  $output = theme('table', $header, $rows);
+  $output .= theme('pager', NULL, 30, 0);
+
+  return $output;
+}
+
+/**
+ * format table data with two lines: node title & external link path
+ */
+function _pop_links_format_item($title, $nid, $path, $width = 35) {
+  $path = ($path ? $path : '/');
+  $output  = ($title ? (l(truncate_utf8($title, $width, TRUE, TRUE), 'node/'. $nid) ."<br />") : '');
+  $output .= l(truncate_utf8($path, $width, FALSE, TRUE), $path);
+  return $output;
+}
+
+/**
+ * Implementation of hook_cron()
+ */
+function pop_links_cron() {
+  $vote_life = variable_get('pop_links_vote_life', 0);
+  $cutoff = time() - $vote_life;
+
+  // keep votes indefinitely if vote_life = 0
+  if ($vote_life) {
+    // fetch this module's overaged votes
+    $result = db_query("SELECT vote_id, content_id FROM {votingapi_vote} WHERE tag = 'pop_links' AND timestamp < %d", $cutoff);
+    $votes = array();
+    $nids = array();
+    while ($vote = db_fetch_array($result)) {
+      $votes[] = $vote;
+      $nids[] = $vote['content_id'];
+    }
+    votingapi_delete_votes($votes); // delete the votes
+    $nids = array_unique($nids);
+    foreach ($nids as $nid) {
+      votingapi_recalculate_results('node', $nid, TRUE); // refresh the vote cache
+    }
+  }
+
+  $stats_life = variable_get('pop_links_stats_life', 0);
+  $cutoff = time() - $stats_life;
+
+  // keep votes indefinitely if stats_life = 0
+  if ($stats_life) {
+    // delete overaged stats
+    db_query("DELETE FROM {pop_links_stats} WHERE timestamp < %d", $cutoff);
+  }
+}
+
+/**
+ * Determine if the user's external link clicks should be tracked
+ * @param $user
+ *   The user object
+ * @return boolean
+ *   TRUE if the user's clicks should be tracked
+ */
+function _pop_links_track($user) {
+  $roles_to_track = variable_get("pop_links_track_roles", array(1 => 0, 2 => 0));
+
+  if ($user->uid == 1) {
+    // don't track the admin/webmaster
+    return FALSE;
+  }
+
+  if (!array_sum($roles_to_track)) {
+    return TRUE;
+  }
+
+  foreach ($user->roles as $rid => $role) {
+    if (in_array($rid, $roles_to_track)) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+// vim: set filetype=php expandtab tabstop=2 shiftwidth=2 autoindent smartindent:

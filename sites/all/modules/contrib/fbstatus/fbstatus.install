@@ -1,0 +1,9 @@
+<?php
+// $Id: fbstatus.install,v 1.2.4.1 2008/02/14 00:09:10 yelvington Exp $
+
+
+function fbstatus_uninstall() {
+  variable_del('fbstatus_url');
+  variable_del('fbstatus_interval');
+  cache_clear_all(NULL, NULL, 'fbstatus');
+ }

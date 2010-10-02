@@ -1,0 +1,79 @@
+<!-- $Id: what-is.html,v 1.2 2009/08/08 10:44:36 rcrowther Exp $ -->
+
+<h3>Taxonomy Treemenu</h3>
+
+<p>
+<img alt="picture of menus" src="path:images/lots_of_menu.jpg"/>
+</p>
+<p>
+<i>a lot of menu</i>
+</p>
+<p>
+Taxonomy Treemenu makes menus out of the Taxonomy. 
+</p>
+
+<p>
+The links are Drupal links, and the menus are Drupal menus, not custom widgets or styling. 
+So you get a recognisable and flexible result, and can start work on your site, not making the module 'fit'.
+
+</p>
+<p>
+That's it, really. 
+If you'd like to try, have a look at the <a href="&topic:taxonomy_treemenu/quickstart&">QUICKSTART</a> and README files, 
+which are now duplicated in this help.
+</p>
+
+<h3>Installation</h3>
+
+<p>Some modules don't use Drupal's enable/disable, install/uninstall module facilities, because they don't need them.
+Taxonomy Treemenu uses them.
+</p>
+<ul>
+<li>
+When you disable the module, you remove all menus, but you keep the base data.
+</li>
+<li>
+if you re-enable the module, Taxonomy Treemenu will attempt to re-build menus from any available data.
+
+</li>
+<em>WARNING:</em> This could be a very expensive operation!
+
+
+Imagine you have six general menus with nodes, on a 200 node site. 
+That's a lot of work to do at once. 
+So consider what you are doing!
+</ul>
+
+<h3>Special Requirements</h3>
+<p>
+Taxonomy Treemenu only uses the resources it needs. 
+The base computing requirements are small, and the module should run on most Drupal installations.
+</p>
+
+<p>
+However, the module has powerful capabilities. 
+It is easy to create a menu with thousands of links, and <em>that</em> action may overload your installation.
+</p>
+<p>
+The dependancies for the moudle are a couple of core modules - Taxonomy and Menu.
+</p>
+<p>
+Treemenu can work with other modues. Here are some initial comments,
+</p>
+<b>DHTML Menu</b>
+<p>
+DHTML Menu is intended as a self-sufficient module. 
+However, for a considerable length of time (-> 6.x-2.2), 
+DHTML Menu used a simple internal interface, and Taxonomy Treemenu simply called into it. 
+In DHTML Menu 6.x-3.5 the interface changed.
+We have some doubts about the new approach, which uses tree recursion,
+something we have cut down to a minimum in this module (so it's a shame to see it occuring elsewhere),
+and link hooks, which we avoid completely.
+</p>
+<p>
+At the time of writing, Taxonomy Treemenu uses  DHTML Menu 6.x-3.5 only. 
+Future interactions between the two modules may be subject to change.
+</p>
+<b>Views</b>
+<p>Taxonomy Treemenu has a measure of Views integration</p>
+<p>See the help page <a href="&topic:taxonomy_treemenu/views-integration&">Views Integration</a> for the current state of play. </p>

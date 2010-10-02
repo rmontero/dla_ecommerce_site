@@ -1,0 +1,98 @@
+<!-- $Id: rendering-multiple-breadcrumbs.html,v 1.1 2009/08/03 18:57:48 rcrowther Exp $ -->
+<h3>Summary</h3>
+<ul>
+<li>
+Taxonomy Treemenu can render multiple breadcrumbs on a multiple hierarchy menu. 
+But you need to work on the rendering. Instructions follow. 
+</li>
+</ul>
+<h3>How to show multiple breadcrumbs on your site</h3>
+<p>
+If you have a multiple hierarchy menu, or one with multiple node attachments, 
+Taxonomy Treemnu offers you the option to render multiple breadcrumbs. 
+</p>
+<p>
+However, the results may be initially disapointing. You may even believe you have found a bug in the program.
+Your breadcrumb will look something like this,
+</p>
+<p>
+<img src="path:images/breadcrumbs1.png"/>
+</p>
+<p>
+We explain why below.
+</p>
+
+<p>
+The information for this breadcrumb is being delivered through the Drupal breadcrumb variable,
+but your standard breadcrumb template code doesn't know how to handle it. 
+Go to your theme's template.tpl file, which is where inline code templates can be overriden.
+
+If you already have a breadcrumb theme, alter that. 
+If you do not, the theme function will look something like this,
+</p>
+
+<pre>
+function phptemplate_breadcrumb($breadcrumb) {
+  if (!empty($breadcrumb)) {
+    return '&lt div class="breadcrumb" &gt'. implode(' › ', $breadcrumb) .'&lt /div &gt';
+  }
+}
+</pre>
+
+<p>
+A normal breadcrumb is an array full of links. 
+Taxonomy treemenu is delivering multiple breadcrumbs, so the data is an array of arrays of links 
+(which is why the strange output above).
+You need to change the breadcrumb theme function to something like this
+</p>
+
+<pre>
+function phptemplate_breadcrumb($breadcrumb) {
+  if (!empty($breadcrumb)) {
+  if (!is_string($breadcrumb[0])) {
+    $output = '&lt div id="breadcrumbs-container" &gt';
+    foreach($breadcrumb as $sub_breadcrumb) {
+      $output .= '&lt div class="breadcrumbs" &gt'. implode(' › ', $sub_breadcrumb) .'&lt /div &gt';
+    }
+    $output .= '&lt /div&gt';
+    return $output;
+  }
+  else {
+    return '&lt div class="breadcrumb">'. implode(' › ', $breadcrumb) .'&lt /div &gt';
+  }
+}
+}
+</pre>
+
+<p>
+In an wonderful world, that would be all you had to do. 
+Unfortunately, in themes based on the stock Garland theme, your multiple breadcrumb now looks like this,
+</p>
+<p>
+ <img src="path:images/breadcrumbs2.png"/>
+</p>
+<p> 
+ Yes, the crumbs have flown the box, or so it seems.
+</p> 
+<p>
+The reason for this lies in the HTML and css, not the rendering.
+Garland Drupal pages use a fixed height for the breadcrumb area,
+and then absolute positioning to place the breadcrumbs above.
+</p> 
+<p>
+At this point it gets rather hard for us to suggest what you should do next, 
+as we do not know how your site is being designed.
+However, to take the edge off the situation, we have added some css within the module. 
+This simply imitates Garland but on the HTML given above.
+So add this line,
+</p>  
+<pre>
+drupal_add_css(drupal_get_path('module', 'taxonomy_treemenu') . '/css/taxonomy-treemenu-page.css');
+</pre>
+<p>
+wherever you are working, in templates or code, and your breadcrumbs will look like this,
+</p>
+
+<p>
+which is slightly less irritating while you work on the code.
+</p>

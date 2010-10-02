@@ -1,0 +1,95 @@
+<?php
+
+// $Id: ecard.install,v 1.1.4.4 2009/02/13 19:04:17 karst Exp $
+
+/**
+ * @file
+ * Install file for the ecard module
+ */
+
+/**
+ * hook_install.
+ */
+
+function ecard_install() {
+  drupal_install_schema('ecard');
+}
+
+/**
+* schema definition
+**/
+function ecard_schema() {
+  $schema['ecard'] = array(
+    'fields' => array(
+      'random' => array(
+        'type' => 'varchar' ,
+        'not null' => TRUE,
+        'default' => '',
+        'length' => '64'
+      ),
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'length' => '10'
+      ),
+      'sender_name' => array(
+        'type' => 'varchar',
+        'not null' => TRUE,
+        'length' => '128'
+      ),
+      'sender_email' => array(
+        'type' => 'varchar',
+        'not null' => TRUE,
+        'length' => '128'
+      ),
+      'recp_mail' => array(
+        'type' => 'varchar',
+        'not null' => TRUE,
+        'length' => '128'
+      ),
+      'message' => array(
+        'type' => 'text',
+        'not null' => TRUE
+      ),
+      'send_time' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'length' => '10'
+      ),
+      'send' => array(
+        'type' => 'varchar',
+        'not null' => TRUE,
+        'length' => '10'
+      ),
+      'notify' => array(
+        'type' => 'varchar',
+        'not null' => TRUE,
+        'length' => '10'
+      ),
+      'format' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'length' => '6'
+      )
+    ),
+    'primary key' => array('random'),
+  );
+  return $schema;
+}
+
+/**
+* Implementation of hook_uninstall().
+*/
+function ecard_uninstall() {
+  drupal_uninstall_schema('ecard');
+}
+
+/**
+ * Implementation of hook_update().
+ */
+function ecard_update_6001() {
+  $ret = array();
+  $ret[] = update_sql("ALTER TABLE {ecard} ADD format int(6) NOT NULL default 0");
+  return $ret;
+}

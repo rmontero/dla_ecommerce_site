@@ -1,0 +1,36 @@
+<h3>Notes</h3>
+<p>
+The administration interface (and the code) sometimes refers to 'branches'.
+A 'branch' is any item in the Taxonomy, a Term or Vocabulary.
+Taxonomy Treemenu can build a menu from both terms and vocabularies.
+For a user, there is no difference.
+</p>
+
+
+<h3>On picking a branch</h3>
+<p>
+The root of a menu does not show.
+</p>
+<p>
+Here is part of a taxonomy,
+</p>
+<p>
+Now, let's say you want to build a menu based on the term 'cars'.
+You pick 'cars' as the root item,
+</p>
+<p>
+The menu grown from cars will look like this,
+</p>
+<p>
+If we showed the root item, the menu would look like this,
+</p>
+<p>
+Which is rather stupid for navigation, as you already wanted cars.
+It is inefficient for the user, as they are not offered a choice on the first level.
+It is also visually inefficient, as a column of screen space has contains one item only.
+</p>
+<p>
+Another way of looking at this; choose the term or vocabulary which 'contains' the root items you wish to show.
+In Taxomomy lingo, that means the <em>parent</em> of the base menu items.
+</p>
+

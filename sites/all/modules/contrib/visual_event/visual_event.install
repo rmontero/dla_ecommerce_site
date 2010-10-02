@@ -1,0 +1,13 @@
+<?php
+// $Id: visual_event.install,v 1.1 2009/10/30 17:33:51 enzo Exp $ 
+
+/**
+ * @file performance.install
+ * Install and update for Performance Logging
+ * Copyright Khalid Baheyeldin 2008 of http://2bits.com
+ */
+
+function visualevent_install() { return true;}
+
+function visualevent_uninstall() { return true;}
+  

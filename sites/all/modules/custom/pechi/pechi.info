@@ -1,0 +1,5 @@
+; $Id$
+name = Pechi Customization
+description = Customizes the way Pechi.net is rendered.
+core = 6.x
+package = "Pechi"

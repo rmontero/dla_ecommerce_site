@@ -1,0 +1,41 @@
+<!-- $Id: multiple-breadcrumbs.html,v 1.1 2009/08/03 18:57:48 rcrowther Exp $ -->
+
+<h3>Summary</h3>
+<ul>
+<li>
+Within multiple hierachies, provide breadcrumbs for every possible path to the term or node. 
+</li>
+<li>
+Heavier CPU load than a single breadcrumb.
+May be an excessive display when the hierarchy is heavily interconnected.
+</li>
+<li>
+No usable display without work on templates, HTML, and css.
+</li>
+</ul>
+
+<h3>Some Notes</h3>
+<p>
+If you have a multiple heirarchy and you do not enable this option, the only breadcrumb displayed is 'home'.
+See the notes on <a href="&topic:taxonomy_treemenu/multiple-hierarchy-ambiguity&">multiple heirarchy menu ambiguity</a>.
+</p>
+<p>
+Taxonomy Treemnu tries to offer breadcrumbs when it can. 
+If the menu term links are not derived from a multiple hierarchy, the menu shows a normal breadcrumb.
+This applies even if the nodes have multiple connections.
+But if you enable 'nodes' on the menu, then you will loose the breadcrumb.
+</p>
+<p>
+Multiple breadcrumbs can be viewed with stock Drupal rendering.
+However, stock Drupal pages uses a fixed height for the breadcrumb area,
+and then absolute positioning to place the breadcrumbs above.
+For now, we have not adjusted this.
+To use this combination of options, the page must currently be altered so it will either have more vertical space, 
+or take a flexible 'div' container at the top of the central container. 
+</p>
+<p>
+Taxonomy Treemenu's term-as-link renderer, will allocate appropriate space for multiple breadcrumbs.
+</p>
+<p>
+See <a href="&topic:taxonomy_treemenu/rendering-multiple-breadcrumbs&">rendering multiple breadcrumbs</a> to style multiple breadcrumbs for your site.
+</p> 

@@ -1,0 +1,68 @@
+<?php
+/* $Id: scripturefilter.module,v 1.8.4.1 2007/05/21 16:45:34 smsimms Exp $ */
+
+function scripturefilter_help($section) {
+  switch ($section) {
+    case 'admin/modules#description':
+      return t('Turns any Scripture reference into a link to one of several online Bibles.');
+  }
+}
+
+function scripturefilter_filter_tips($delta, $format, $long = false) {
+  return t('Scripture references will be linked automatically to an online Bible.  E.g. John 3:16, Eph 2:8-9 (ESV).');
+}
+
+function scripturefilter_filter($op, $delta = 0, $format = -1, $text = '') {
+  include_once 'scripturefilter.inc';
+  switch ($op) {
+    case 'list':
+      return array(0 => t('Scripture Filter'));
+
+    case 'description':
+      return t('Turns any Scripture reference into a link to one of several online Bibles.');
+
+    case 'process':
+      return scripturize($text, variable_get("scripturefilter_default_translation_$format", DEFAULT_BIBLE_TRANSLATION));
+     
+    case 'settings':
+      $form['filter_scripturefilter'] = array(
+        '#type' => 'fieldset',
+        '#title' => 'Scripture filter',
+        '#collapsible' => TRUE,
+        '#description' => t('This filter enables content that has a reference to Scripture to be linked to one of several online Bibles, such as BibleGateway, the ESV online Bible and the NET Bible.')
+      );
+
+      $form['filter_scripturefilter']["scripturefilter_default_translation_$format"] = array(
+        '#type' => 'select',
+        '#title' => t('Default Bible translation'),
+        '#default_value' => variable_get("scripturefilter_default_translation_$format", DEFAULT_BIBLE_TRANSLATION),
+        '#options' => array(
+          "KJ21" => t("21st Century King James Version"),
+          "ASV" => t("American Standard Version"),
+          "AMP" => t("Amplified Bible"),
+          "CEV" => t("Contemporary English Version"),
+          "DARBY" => t("Darby Translation"),
+          "ESV" => t("English Standard Version"),
+          "KJV" => t("King James Version"),
+          "MSG" => t("The Message"),
+          "NASB" => t("New American Standard Bible"),
+          "NET" => t("New English Translation"),
+          "NIRV" => t("New International Reader's Version"),
+          "NIV" => t("New International Version"),
+          "NIV-UK" => t("New International Version - UK"),
+          "NKJV" => t("New King James Version"),
+          "NLT" => t("New Living Translation"),
+          "TNIV" => t("Today's New International Version"),
+          "WE" => t("Worldwide English New Testament"),
+          "WYC" => t("Wycliffe New Testament"),
+          "YLT" => t("Young's Literal Translation"),
+        ),
+      );
+      return $form;
+
+    default:
+      return $text;
+  }
+}
+
+?>

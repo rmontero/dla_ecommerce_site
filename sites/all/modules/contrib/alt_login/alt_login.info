@@ -1,0 +1,11 @@
+; $Id: alt_login.info,v 1.5 2007/11/26 00:07:35 thehunmonkgroup Exp $
+name = "Alternate Login"
+description = "Allows users to have a login identity that's different from their username."
+core = "6.x"
+
+; Information added by drupal.org packaging script on 2009-07-27
+version = "6.x-1.1"
+core = "6.x"
+project = "alt_login"
+datestamp = "1248716109"
+

@@ -1,0 +1,254 @@
+# $Id: de.po,v 1.1.2.1 2009/02/11 16:36:27 karst Exp $
+#
+# German translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  ecard.module,v 1.3 2008/12/04 11:50:38 karst
+#  ecard.info,v 1.2 2008/12/04 11:50:38 karst
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2009-01-16 11:34+0100\n"
+"PO-Revision-Date: 2009-01-16 11:34+0100\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: German <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: ecard.module:23
+msgid "Ecard settings"
+msgstr "Grußkarten Einstellungen"
+
+#: ecard.module:24
+msgid "Change how ecards behave."
+msgstr "Wie sollen sich Grußkarten verhalten?"
+
+#: ecard.module:32 ecard.info:0
+msgid "ecard"
+msgstr "Grußkarte"
+
+#: ecard.module:61
+msgid "Choose the content types which you want to send as ecard"
+msgstr "Für welche Inhaltstypen soll die Grußkartenfunktion aktiv sein?"
+
+#: ecard.module:70
+msgid "A form to send ecard will append to the content if the users role has the right to send ecards."
+msgstr ""
+"Ermöglicht es, ein Formular an einen Node zu binden, das einem "
+"berechtigem User eine Grußkarte zu versenden und eine Nachricht zu "
+"hinterlassen."
+
+#: ecard.module:74
+msgid "Letter customization"
+msgstr "Anschreiben anpassen"
+
+#: ecard.module:80;103
+msgid "Subject"
+msgstr "Betreff"
+
+#: ecard.module:84;107
+msgid "Customize the subject for ecard"
+msgstr "Betreff anpassen"
+
+#: ecard.module:88;111
+msgid "Body"
+msgstr "Textkörper"
+
+#: ecard.module:92
+msgid "This text is the body of the email that the card recipient will see. These are the variables you may use: %site = your site name, %site_url = your site URL, %site_mail = your site email address, %card_url = the URL for the ecard, %sender = sender name, %recipient = recipient email, "
+msgstr ""
+"Diese Nachricht erhält der Empfänger per E-Mail. Sie können "
+"folgende Variablen benutzen: %site = Name Ihrer Website, %site_url = "
+"URL Ihrer Website, %site_mail = E-Mail Adresse Ihrer Website, "
+"%card_url = URL der Grußkarte, %sender = Name des Versenders, "
+"%recipient = E-Mail des Emfängers"
+
+#: ecard.module:97
+msgid "Notification email customization"
+msgstr "Anpassung der E-Mail Benachrichtigungen"
+
+#: ecard.module:115
+msgid "This text is the body of the email to notify the sender than the card has been picked. These are the variables you may use: %site = your site name, %site_url = your site URL, %site_mail = your site email address, %card_url = the URL for the ecard, %sender = sender name, %recipient = recipient email "
+msgstr ""
+"Diese Nachricht erhält der Versender per E-Mail, wenn die Grußkarte "
+"geöffnet wurde . Sie können folgende Variablen benutzen: %site = "
+"Name Ihrer Website, %site_url = URL Ihrer Website, %site_mail = E-Mail "
+"Adresse Ihrer Website, %card_url = URL der Grußkarte, %sender = Name "
+"des Versenders, %recipient = E-Mail des Emfängers "
+
+#: ecard.module:119
+msgid "Miscellaneous settings"
+msgstr "Verschiedene Einstellungen"
+
+#: ecard.module:125
+msgid "Days to keep ecards"
+msgstr "Tage, wie lange Grüße (Nachrichten) gespeichert bleiben sollen."
+
+#: ecard.module:126
+msgid "ecards that are aged more than the number of days entered above will automatically be deleted from the database. Use 0 to never delete. Note that this will only be checked when cron.php is run."
+msgstr ""
+"Grußkarten (Nachrichten), die älter sind als die angegebene Anzahl "
+"an Tagen, werden automatisch gelöscht. Tragen Sie 0 ein, wenn "
+"Grußkarten (Nachrichten) niemals gelöscht werden sollen. Beachten "
+"Sie bitte, dass diese Funktion cron.php voraussetzt."
+
+#: ecard.module:132
+msgid "Maximum number of emails allowed to send at a time"
+msgstr "Anzahl der maximal erlaubten Empfänger"
+
+#: ecard.module:133
+msgid "Do not set it to very big values as it may cause spaming"
+msgstr "Bitte geben Sie keine zu große Zahl ein um Spam zu verhindern"
+
+#: ecard.module:139
+msgid "This email used to send emails"
+msgstr "Diese Emailadresse als Absender benutzen"
+
+#: ecard.module:140
+msgid "eg: noreply@yoursitename.com or admin@sitename.com etc"
+msgstr "also: noreply@yoursitename.com oder admin@sitename.com etc."
+
+#: ecard.module:145
+msgid "Hide the send form when viewing ecard message"
+msgstr "Das Versendeformularverstecken, wenn eine Grußkarte angesehen wird?"
+
+#: ecard.module:150
+msgid "Put the ecard form in a fieldset?"
+msgstr "Das Grußkartenformular in ein fieldset einschließen?"
+
+#: ecard.module:155
+msgid "Require the user to input a message in the ecard form?"
+msgstr "Eingabe einer Nachricht erzwingen?"
+
+#: ecard.module:172
+msgid "Hi,\n\n%sender made an ecard for you.\nAt any time you may see your card by clicking this link:\n\n%card_url\n\n(if your email client doesn't allow you to click on the site link,\nthen just copy and paste the URL into your browser)\n\nadmin"
+msgstr ""
+"Hallo,\n"
+"\n"
+"%sender hat Ihnen eine Grußkarte geschickt.\n"
+"Die Grußkarte können Sie jederzeit unter folgendem Link einsehen:\n"
+"\n"
+"%card_url\n"
+"\n"
+"(Kopieren Sie diese Adresse bitte in die Adressleiste Ihres "
+"Browsers,\n"
+"falls Ihr E-Mail Programm nicht unterstützt, direkt auf diesen Link "
+"klicken zu können)\n"
+"\n"
+"Mit freundlichen Grüßen,\n"
+"%site"
+
+#: ecard.module:212
+msgid "Your name"
+msgstr "Ihr Name"
+
+#: ecard.module:219
+msgid "Your email"
+msgstr "Ihre E-Mail Adresse"
+
+#: ecard.module:221
+msgid "example@example.com"
+msgstr "example@example.com"
+
+#: ecard.module:227
+msgid "E-mail(s) of recipient(s)"
+msgstr "E-Mail Empfänger (geben Sie eine Adresse je Zeile an)"
+
+#: ecard.module:231
+msgid "example@example.com. You may enter multiple emails by one per line"
+msgstr ""
+"example@example.com. Sie können mehrere Adressen eingeben. Bitte eine "
+"pro Zeile."
+
+#: ecard.module:237
+msgid "Type your message"
+msgstr "Ihre Nachricht"
+
+#: ecard.module:239
+msgid "Whatever you type here will be attached to ecard"
+msgstr ""
+"Der Text den Sie hier eingeben wird auf der Seite mit ihrer Ecard "
+"angezeigt."
+
+#: ecard.module:245
+msgid "Notify me when the card is picked"
+msgstr "Bitte benachrichtigen Sie mich, wenn diese Grusskarte geöffnet wurde."
+
+#: ecard.module:252
+msgid "Send this card"
+msgstr "Grußkarte versenden"
+
+#: ecard.module:259
+msgid "Send this ecard"
+msgstr "Grußkarte versenden"
+
+#: ecard.module:277
+msgid "Your email address is invalid"
+msgstr ""
+"Es tut uns leid, aber Sie scheinen sich bei Ihrer E-Mail Adresse "
+"verschrieben zu haben."
+
+#: ecard.module:300
+msgid "This email has an error \"@email\""
+msgstr "Diese Emailadresse ist fehlerhaft  \"@email\""
+
+#: ecard.module:316
+msgid "You are not allowed to send to more than !count emails , please delete few email address and send the card"
+msgstr ""
+"Es tut uns Leid, aber Sie dürfen nicht mehr als !count Grußkarten "
+"gleichzeitig versenden. Bitte verringern Sie die Anzhal der Empfänger"
+
+#: ecard.module:425
+msgid "Your ecard has been sent and a copy is stored for your reference.<br />You can view the copy <a href = \"!card_copy_url\">here</a>"
+msgstr ""
+"Ihre Grußkarte wurde versendet und eine Kopie wurde für Sie "
+"gespeichert.<br />Sie können die Kopie <a href = "
+"\"!card_copy_url\">hier ansehen</a>"
+
+#: ecard.module:430
+msgid "Copy of your ecard"
+msgstr "Kopie Ihrer Grußkarte"
+
+#: ecard.module:430
+msgid "Hi\n Here is the copy of the ecard for your reference \n!card_copy_url\nadmin"
+msgstr ""
+"Hallo\n"
+"Hier befindet sich  eine Kopie Ihrer Nachricht\n"
+"!card_copy_url"
+
+#: ecard.module:436
+msgid "Hi,\n\n%recipient has picked your card today.\n here is the url to your card\n %card_url\n\n (if your email client doesn't allow you to click on the site link,\nthen just copy and paste the URL into your browser)\n\nadmin"
+msgstr ""
+"Hallo,\n"
+"\n"
+"%recipient hat Ihre Fotogrußkarte heute aufgerufen.Klicken Sie hier\n"
+"%card_url,\n"
+"wenn Sie Ihre Grußkarte noch einmal ansehen möchten.\n"
+"\n"
+"(Kopieren Sie diese Adresse bitte in die Adressleiste Ihres "
+"Browsers,\n"
+"falls Ihr E-Mail Programm nicht unterstützt, direkt auf diesen Link "
+"klicken zu können)\n"
+"\n"
+"\n"
+"Mit freundlichen Grüßen,\n"
+"%site"
+
+#: ecard.module:492
+msgid "Your ecard id is not valid either it may be an error or it expired"
+msgstr "Ihre Grußkarte ist ungültig oder es ist ein Fehler aufgetreten."
+
+#: ecard.module:504
+msgid "Thanks, and have a nice day."
+msgstr "Vielen Dank! Wir wünschen Ihnen noch einen schönen Tag."
+
+#: ecard.info:0
+msgid "This module allow your to send any content type as an ecard/postcard."
+msgstr ""
+"Dieses Modul ermöglicht es Ihnen, jede Art von Content als Grußkarte "
+"zu verschicken."
+

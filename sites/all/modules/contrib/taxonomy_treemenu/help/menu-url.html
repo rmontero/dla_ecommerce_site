@@ -1,0 +1,51 @@
+<!-- $Id: menu-url.html,v 1.1 2009/08/03 18:57:48 rcrowther Exp $ -->
+
+<h3>Summary</h3>
+<ul>
+<li>
+Prefixes all node and term links in a menu with /[menu-name]/. 
+</li>
+<li>
+Style different menus with one to three templates. 
+</li>
+<li>
+Creates multiple links to site material, so may require multiple URL aliases.
+See the <a href="&topic:taxonomy_treemenu/custom-urls&">custom urls</a> help page for more information.
+</li>
+
+</ul>
+
+<h3>Description</h3>
+<p>
+The menu name itself is always prefixed with ?q=/ttm/... as default and minimum.
+This is to avoid clashes with other modules.
+A typical link in a treemenu, 
+for example GreenShoes, would become,
+</p>
+
+<pre>
+www.mysite.?q=/ttm/menu-greenshoes/node/9
+</pre>
+
+<p>
+On paging, Taxonomy Treemenu can handle such URL's internally.
+</p>
+<p>
+A URL such as this will generate page template suggestions such as,
+</p>
+
+<pre>
+page-ttm
+page-ttm-menu
+page-ttm-menu-greenshoes.tpl.php
+page-ttm-menu-greenshoes-node.tpl.php
+page-ttm-menu-greenshoes-term.tpl.php
+</pre>
+
+<p>
+Thus allowing a designer to style individual menus using a handful of templates.
+</p>
+
+<p>
+General information about <a href="&topic:taxonomy_treemenu/template-suggestions&">template suggestions</a>. 
+</p>

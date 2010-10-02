@@ -1,0 +1,6 @@
+INSTALLATION INSTRUCTIONS FOR trackback
+
+(1) Download, install and enable TrackBack as usual
+
+(2) To configure trackback, go to
+  Administer->Content management->Trackbacks

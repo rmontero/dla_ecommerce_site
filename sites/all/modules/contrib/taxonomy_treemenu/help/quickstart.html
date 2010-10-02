@@ -1,0 +1,97 @@
+<!-- $Id: quickstart.html,v 1.1 2009/08/03 18:57:48 rcrowther Exp $ -->
+
+<h3>Quickstart</h3>
+<p>
+The module is closely built into Drupal's admin. 
+So close, that in Garland-so-blue-I'm-getting-lost, you may not be able to see where you're going. 
+So here's a quickstart,
+</p>
+
+<h3>Instructions</h3>
+<p>
+<em>
+*** The following directions assume you have menu admin permissions. 
+If you are not you will need to be granted appropriate permissions ***
+</em>
+</p>
+
+
+
+<ol>
+
+<li>
+<i>Install and enable taxonomy-treemenu.</i>
+</li>
+
+
+If you have Views enabled, then Taxonomy Treemenu will automatically use that for rendering term lists and nodes.
+ - Go to Views and check you have the default templates loaded and enabled.
+ You may need to use tools > 'Views Cache empty', or do a 'cache empty' through the Devel module.
+
+
+
+<li>
+<i>If you havn't got one, create a taxonomy and some nodes.</i> 
+</li>
+
+If you have a clean installation, the Devel module ('Generate items') can do this quickly.
+(Remember - the Forums and Books modules also have usable taxonomies, though I wouldn't tinker with a book - that module has it's own menu system)
+
+<li><i>'Site building > menus'. On that page there is a new link, 'Add taxonomy menutree'. Click on it.</i> </li>
+
+
+<li>
+<i>At the top is a new fieldset 'Branch selector'. 
+Drop down the option list and choose a vocabulary or term to build from 
+- this will be the root of your new menu.</i>
+</li>
+
+The form looks like a standard menu creation page page, with some additions. 
+
+(Note that the root of any menu is not displayed. 
+The base of a treemenu, as displayed to a user, will be the child terms of your chosen root)
+Note also the other 'Treemenu render options'. 
+If you are curious, have a look at the options, 
+but don't experiment yet - the defaults have been chosen to yield obvious results.
+
+
+<li>
+<i>Fill in the required fields - 'menu name' and 'title' (same as Drupal core's custom menus). 
+Leave everything else, and press 'save'.</i>
+</li>
+
+
+
+<li>
+<i>The message you recieve will have a link to the new menu.</i>
+</li>
+Or type this into your browser address bar,
+'mySiteAddress/?q=tttm/menu-[nameYouGaveTheMenuInMenuNameField]/'
+
+
+</ol>
+
+<p>
+The new menu should appear as page content.
+
+(If you don't recall the 'nameYouGaveTheMenuInMenuNameField',  goto 'admin > menus > nameOfMyMenu' list. 
+The 'nameYouGaveTheMenuInMenuNameField' is listed at the top.)
+</p>
+<p>
+I think what you see now will probably tell you all you need to know about what this module tries to do.
+</p>
+
+
+<h3>Fun with options</h3>
+Can you see your menu? Jolly Good! Try this...
+<ul>
+<li><i> admin > menus > 'nameOfTreemenuICreated'. Click on the 'Edit menu' button.</i></li>
+
+<li><i> Try changing some options.</i></li>
+</ul>
+The options are obvious in their effect. Most of them, anyway. 'link menu roots' is a powerful feature which requires a moment's consideration.
+
+<h3>Promote to block</h3>
+
+If you want to try the menu in a block, promote the block called  'nameOfMyMenu-treemenu'.
+There will be a duplicate block, called 'nameOfMyMenu' but, if promoted, this will return only a warning message.

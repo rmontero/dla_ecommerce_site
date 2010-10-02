@@ -1,0 +1,11 @@
+; $Id: scripturefilter.info,v 1.1.2.1 2008/02/19 00:27:19 smsimms Exp $
+name = Scripturefilter
+description = Turns any Scripture reference into a link to one of several online Bibles.
+core = 6.x
+
+; Information added by drupal.org packaging script on 2008-02-19
+version = "6.x-1.0"
+core = "6.x"
+project = "scripturefilter"
+datestamp = "1203381308"
+

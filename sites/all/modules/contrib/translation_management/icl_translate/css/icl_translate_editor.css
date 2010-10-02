@@ -1,0 +1,13 @@
+/* $Id: icl_translate_editor.css,v 1.1 2010/06/30 08:22:07 brucepearson Exp $ */
+
+#icl-translate-editor .field_data {
+  border: 1px solid #eaeaea;
+	padding: 5px;
+}
+
+.icl_translate_editor_load_autosave {
+  cursor: pointer;
+	font-style: italic;
+	font-size: 0.9em;
+	color: Red;
+}

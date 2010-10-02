@@ -1,0 +1,53 @@
+<?php
+// $Id: nodetype.module,v 1.2 2008/03/23 14:48:34 timcn Exp $
+
+
+/**
+ * Implementation of hook_perm().
+ */
+function nodetype_perm() {
+  return array('change node types');
+}
+
+/**
+ * Implementation of hook_nodeapi().
+ */
+function nodetype_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) { 
+  switch ($op) {
+    case 'presave':
+      if (isset($node->nodetype) && $node->nodetype) {
+        $types = node_get_types();
+        drupal_set_message(t('The type of the post %title has been changed from %old to %new.', array('%title' => $node->title, '%old' => $types[$node->type]->name, '%new' => $types[$node->nodetype]->name)));
+        $node->type = $node->nodetype;
+      }
+      break;
+  } 
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function nodetype_form_alter(&$form, $form_state, $form_id) {
+  if (isset($form['type']) && $form['type']['#value'] .'_node_form' == $form_id && isset($form['#node']->nid) && user_access('change node types')) {
+    $types = node_get_types();
+
+    foreach ($types as $type => $info) {
+      if ($form['type']['#value'] == $type) {
+        $current_type = $types[$type];
+        unset($types[$type]);
+      }
+      else {
+        $types[$type] = $info->name;
+      }
+    }
+
+    $form['nodetype'] = array(
+      '#type' => 'select',
+      '#title' => t('Content type'),
+      '#description' => t('Select a new content type that this post will be changed to. Only continue if you know what you are doing. <strong>This does not migrate data from CCK fields!</strong>'),
+      '#options' => array(0 => '<'. t('leave as is: @type', array('@type' => $current_type->name)) .'>') + $types,
+      '#default_value' => isset($form_state['values']['nodetype']) ? $form_state['values']['nodetype'] : 0,
+      '#weight' => 10,
+    );
+  }
+}

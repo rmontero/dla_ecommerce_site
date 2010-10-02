@@ -1,0 +1,63 @@
+<!-- $Id: restructured-terms.html,v 1.1 2009/08/03 18:57:48 rcrowther Exp $ -->
+
+<h3>Summary</h3>
+<ul>
+<li>
+Term lists accessed through a treemenu have the same structure as the menu. 
+</li>
+<li>
+Internal or Views rendering also provides fully styled rendering of multiple breadcrumbs.
+See <a href="&topic:taxonomy_treemenu/template-suggestions&">template suggestions</a> for more information. 
+</li>
+<li>
+Requires alteration of term URLs.
+See <a href="&topic:taxonomy_treemenu/custom-urls&">custom urls</a> for more information.
+</li>
+
+</ul>
+
+<h3>Description</h3>
+
+<p>
+<b>NOTE FOR VIEWS USERS:</b>
+Using this option, page titles are set by Taxonomy Treemenu, not Views! 
+Taxonomy Treemenu is asking Views for page content rendering only!
+</p>
+
+<p>
+On some sites, sidebars and menu boxes (on the front page, for example) are not the primary sorce of navigation.
+These sites may use search boxes, or full page lists of terms (or even sortable Views) to help the user navigate.
+On these sites the default setup of Taxonomy Treemenu is ok. 
+Taxonomy Treemenu is presumably adding some quick anviagation links tojump a user into certain subject areas,
+or a sitemap for those users who need an overview.
+</p>
+
+<p>
+Other sites may be using Taxonomy Treemenu as a primary source of navigation.
+The 'node' option may be enabled and Treemenu links take a user straight to content.
+On a site such as this, when a user pages a term (list of nodes in a category), 
+they would hope to see the list of nodes in the same order as the menu.
+</p>
+
+<p>
+This is impossible with a standard Drupal setup.
+Taxonomy Treemenu has many options for ordering and filtering nodes, so tampers with the default structure of the menu.
+And on paging, the Drupal stock URL 'taxonomy/term/%' will list whatever is under the term, 
+without allowing Taxonomy Treemenu to structure the node list.
+</p>
+
+<p>
+However, it can be done. The first requirement is to give Taxonomy Treemenu a say in rendering terms.
+This must be done using an altered URL, as Treemenu must know about this early in the rendering process.
+See <a href="&topic:taxonomy_treemenu/custom-urls&">custom urls</a> for more information.
+The second requirement is that Treemenu is told to change the rendering, and how to go about this. 
+This is done by enabling the option, and using eeither the internal renderer or the built-in Views template.
+</p>
+
+<p>
+Coders will note that that there is another way of altering term lists which does not alter stock Drupal styling. 
+This is by use of hook_db_rewrite_sql().
+While this approach would seem to offer advantages in some situations, we have not enabled it.
+Without targeting URLs, any use of this hook would override every term page on site.
+And Taxonomy Treemenu's adaptations are wholesale, not small...
+</p>

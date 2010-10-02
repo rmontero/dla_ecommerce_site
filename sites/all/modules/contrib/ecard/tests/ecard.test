@@ -1,0 +1,111 @@
+<?php
+// $Id: ecard.test,v 1.1.2.2 2009/12/22 19:27:11 karst Exp $
+
+/**
+ * @file
+ * Ecard module functionality tests.
+ */
+
+/**
+ * Base class for all ecard web test cases.
+ */
+class EcardWebTestCase extends DrupalWebTestCase {
+
+  protected $ecard_admin_user;
+  protected $ecard_sender;
+  protected $ecard_own_sender;
+  protected $ecard_receiver;
+  protected $ecard_node;
+
+  public static function getInfo() {
+    return array(
+    'name' => 'ecard',
+    'description' => 'Checks for ecard functionallity.',
+    'group' => 'Ecard',
+    );
+  }
+
+  public function setUp() {
+  // Enable the ecard module.
+    parent::setUp('ecard');
+    $this->ecard_admin_user = $this->drupalCreateUser(array('view ecards', 'send ecards', 'send own content as ecard', 'administer site configuration'));
+    $this->ecard_sender     = $this->drupalCreateUser(array('send ecards'));
+    $this->ecard_own_sender = $this->drupalCreateUser(array('send own content as ecard'));
+    $this->ecard_receiver   = $this->drupalCreateUser(array('view ecards'));
+    $this->drupalLogin($this->ecard_admin_user);
+
+    // Ecard is added to all nodes of an activated type. So we can create a
+    // default node for testing.
+    $this->ecard_node = $this->drupalCreateNode(array('type' => 'story'));
+  }
+/*
+  public function testEcardConfig() {
+
+    // Activate for story
+    $data = array('ecard_nodetypes[story]' => TRUE);
+
+    $this->drupalPost('admin/settings/ecard', $data, t('Save configuration'));
+
+     // @todo: Test all settings
+  }
+*/
+
+  public function testEcardSendRecieve() {
+
+    $this->drupalPost('admin/settings/ecard', $data, t('Reset to defaults'));
+
+    // Activate for story
+    $data = array('ecard_nodetypes[story]' => TRUE);
+
+    $this->drupalPost('admin/settings/ecard', $data, t('Save configuration'));
+
+    $settings = array(
+        'type' => 'story'
+    );
+    $node = $this->drupalCreateNode($settings);
+
+    $this->drupalGet('node/'.$node->nid);
+
+    $this->assertText(t('Send an E-card to your friends'));
+
+    // Generate random data and test sending.
+    $name       = $this->randomName(20);
+    $from_email = $this->randomName(5).'@example.com';
+    $to_email   = $this->randomName(5).'@example.com';
+    $message    = $this->randomName(25);
+
+    $edit = array(
+        'name'        => $name,
+        'from_email'  => $from_email,
+        'to_email'    => $to_email,
+        'message'     => $message,
+        'notify'      => 1,
+    );
+
+    $this->drupalPost('node/'.$node->nid, $edit, t('Send This E-card'));
+
+    $mails = variable_get('drupal_test_email_collector', array());
+
+    $this->assertEqual(count($mails), 2, '2 emails found.');
+
+    // Check original email.
+    $this->assertEqual($mails[0]['id'], 'ecard_ecard-mail', 'Correct email id found.');
+    $this->assertEqual($mails[0]['from'], $from_email, 'From address is correctly set.');
+    $this->assertEqual($mails[0]['to'], $to_email, 'To address is correctly set.');
+    $card_urls[] = $mails[0]['params']['card'];
+    // @todo: Add more checks.
+    // $mail['subject'];
+    // $mail['body'];
+
+    // Check copy.
+    $this->assertEqual($mails[1]['id'], 'ecard_ecard-copy', 'Correct email-copy id found.');
+    $this->assertEqual($mails[1]['from'], 'simpletest@example.com', 'From address for the copy is correctly set.');
+    $this->assertEqual($mails[1]['to'], $from_email, 'To address for the copy is correctly set.');
+    $card_urls[] = $mails[1]['params']['card'];
+
+    foreach($card_urls AS $url) {
+      $this->drupalGet($url);
+      $this->assertText($message);
+    }
+  }
+}

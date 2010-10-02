@@ -1,0 +1,16 @@
+1) Get http://developers.facebook.com/clientlibs/facebook-platform.tar.gz
+2) Extract
+
+If you have php4.
+3) As per facebook instructions..
+   3a) Get http://downloads.sourceforge.net/ister4framework/simplexml44-0_4_4.tar.gz
+   3b) Extract to facebook-platform/php4client
+
+4) Signup for a developer account:
+*  http://www.facebook.com/developers/apps.php
+   * Site Callback should be http://www.domain.com/facebook/ (with domain.com being your newly setup site)
+   * Keys can be filled in at /admin/settings/facebook_auth
+
+
+NOTE:
+If you do nothave clean urls turned on, make sure to set your return url to http://www.domain.com/ instead of http://www.domain.com/facebook/

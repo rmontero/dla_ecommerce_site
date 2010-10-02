@@ -1,0 +1,11 @@
+name = Core
+description = Provides core services for sending and returning translation jobs.
+dependencies[] = translation
+core = 6.x
+package = Translation Management
+; Information added by drupal.org packaging script on 2010-09-30
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "translation_management"
+datestamp = "1285806135"
+

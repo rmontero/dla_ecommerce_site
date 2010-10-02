@@ -1,0 +1,44 @@
+; $Id$
+name = "Rubik"
+description = "Clean admin theme."
+base theme = "tao"
+core = "6.x"
+engine = "phptemplate"
+
+scripts[] = "js/rubik.js"
+stylesheets[screen][] = "style.css"
+stylesheets[screen][] = "icons.css"
+
+regions[nw] = "nw"
+regions[ne] = "ne"
+regions[se] = "se"
+regions[sw] = "sw"
+
+; Default layout
+layouts[default][name] = "Default"
+layouts[default][description] = "Simple 1-column page."
+layouts[default][template] = "page"
+
+; Columns
+layouts[columns][name] = "2 columns"
+layouts[columns][description] = "2 column page."
+layouts[columns][stylesheet] = "layout-columns.css"
+layouts[columns][template] = "layout-columns"
+layouts[columns][regions][] = "ne"
+
+; 4 grid layout
+layouts[grid][name] = "4 Pane grid"
+layouts[grid][description] = "Grid with 4 panes."
+layouts[grid][stylesheet] = "layout-grid.css"
+layouts[grid][template] = "layout-grid"
+layouts[grid][regions][] = "nw"
+layouts[grid][regions][] = "ne"
+layouts[grid][regions][] = "sw"
+layouts[grid][regions][] = "se"
+
+; Information added by fserver
+core = "6.x"
+datestamp = "1258685907"
+project = "rubik"
+project status url = "http://code.developmentseed.org/fserver"
+version = "6.x-1.0-alpha1"

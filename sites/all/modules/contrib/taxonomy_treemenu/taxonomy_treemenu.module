@@ -1,0 +1,4529 @@
+<?php
+// $Id: taxonomy_treemenu.module,v 1.39 2009/10/12 19:36:13 rcrowther Exp $
+
+
+// WARNING: This is a large file with lots of code for handling options,
+//  which need to be bulked up with admin display info, then re-converted
+//  back into an internal format.
+// Don't remove this line thoughtlessly!
+require_once(drupal_get_path('module', 'taxonomy_treemenu') . '/includes/taxonomy_treemenu.options.forms.inc');
+
+define('TTM_HIDDEN_URLROOT', '/ttprnts' );
+
+define('TTM_URLROOT', 'ttm/');
+/*
+ * Include Pathauto file, if Pathauto enabled.
+ */
+if(module_exists('pathauto')) {
+  //require_once(drupal_get_path('module', 'taxonomy_treemenu') . '/includes/taxonomy_treemenu.pathauto.inc');
+}
+
+
+/**
+ * Implementation of hook_views_api().
+ */
+function taxonomy_treemenu_views_api() {
+  return array(
+    'api' => 2,
+    //'path' => drupal_get_path('module', 'taxonomy_treemenu'),
+    'path' => drupal_get_path('module', 'taxonomy_treemenu') . '/views',
+  );
+}
+
+function taxonomy_treemenu_advanced_help_message() {
+  if (!module_exists('advanced_help')) {
+    $m  = t('The Advanced Help module appears to be uninstalled or disabled. ');
+    $m .= t('If you install and enable the Advanced Help module from !href, Taxonomy Treemenu will provide help on buttons within the administration interface. ', array('!href' => l('http://drupal.org/project/advanced_help', 'http://drupal.org/project/advanced_help')));
+    $m .= t('If you prefer not to use the module, you can visit the help pages using the !href which will appear in the naviation menu.', array('!href' => l('help links', 'admin/help/ttm-advanced-help')));
+  }
+  else {
+  $m  = t('Taxonomy Treemenu is enabled for Advanced Help. Use the buttons to find help within the administrative interface. The buttons look like this,');
+  $m .= '<p><img id="advanced-help-example" alt="picture - advanced help icon small" src="'. drupal_get_path('module', 'taxonomy_treemenu') . '/misc/help_example.png'.'"/></p>';
+  $m .= t('Large help buttons look like this,');
+  $m .= '<p><img id="advanced-help-example" alt="picture - advanced help icon large" src="'. drupal_get_path('module', 'taxonomy_treemenu') . '/misc/help_large_example.png'.'"/></p>';
+  $m .= t('Or go directly to the !href.', array('!href' => l('help links', 'admin/advanced_help/taxonomy_treemenu')));
+  }
+  drupal_set_message($m, 'status', FALSE);
+};
+
+
+
+/**
+ * Implementation of hook_help().
+ */
+function taxonomy_treemenu_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case 'admin/help#taxonomy_treemenu':
+      $output = '<p>'.  t("Make a menu from a taxonomy item, autogenerating subitems, with options") .'</p>';
+      $output .= '<p>'. t("On the 'admin/menu' page there is a new link 'Add taxonomy menutree'. Click on it. Looks like a standard menu creation page page, but has a new fieldset for the choosing of a root node. Go ahead, fill in the fields and choose a root node. Note that the root of a treemenu can not be changed. For a menu with a new root, delete the old menu and create a new one.") .'</p>';
+      $output .= '<p>'. t("Has a pager. Try '?q=treemenu/myMenuName'. You can also use ',' or '+' as a separator and get multiple menus on one page. e.g. 'treemenu/cheapcars+stuffedanimals'. Use normal names, as you supplied initially for the 'machine name' field in the 'add menu' form (not proper machine names, if you know what they are). Have a look at 'admin>menu>myTreemenu' if you have forgotten the name, the right URL name is listed there.") .'</p>';
+      $output .= '<p>'. t("Theme the menu using the template, and the links by overriding theme_taxonomy_treemenu_item_link().") .'</p>';
+      $output .= '<p>'. t("The disabled links all have a css class of 'treemenu-disabled-link'.") .'</p>';
+      $output .= '<p>'. t("Read the README or QUICKSTART files for lots of extra help.") .'</p>';
+      break;
+  }
+  return $output;
+}
+
+
+/**
+ * Implementation of hook_menu().
+ */
+function taxonomy_treemenu_menu() {
+  $items = array();
+
+  if (!module_exists('advanced_help')) {
+    //dpm('menu item for advanced help');
+      $items['admin/help/ttm-advanced-help'] = array(
+      'title' => t('Advanced Help for Taxomomy Treemenu'),
+      'description' => 'Quick links to advanced help pages, if you do not have the module installed.',
+      'page callback' => 'taxonomy_treemenu_advanced_help_page',
+      'page arguments' => array('overview'),
+      'access callback' => 'user_access',
+      'access arguments' => array('administer menu'),
+      'type' => MENU_NORMAL_ITEM,
+    );
+     $items['admin/help/ttm-advanced-help/%'] = array(
+      'title' => t('Advanced Help for Taxomomy Treemenu'),
+      'page callback' => 'taxonomy_treemenu_advanced_help_page',
+      'page arguments' => array(3),
+      'access callback' => 'user_access',
+      'access arguments' => array('administer menu'),
+
+      'type' => MENU_CALLBACK,
+    );
+  }
+
+  $items['taxonomy_treemenu/ahah'] = array(
+    'title' => 'Advanced Options for Form',
+    'page callback' => 'taxonomy_treemenu_advanced_options_ahah',
+    'access arguments' => array('access content'),
+    'file' => 'taxonomy_treemenu.admin.inc',
+    'type' => MENU_CALLBACK,
+  );
+
+  // Duff item, never used in Taxonomy Treemenu, but keeps our links
+  // anchored and existing when using core menu functions.
+  // Also there is enough here to start the link assessment for access
+  // and so forth, again with the core functions.
+  /*
+  $items['ttprnts/%'] = array(
+    'title' => t('taxonomy_treemenu_base_item'),
+    'page callback' => 'drupal_not_found',
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK
+  );
+*/
+
+ //leave the /menu part of the path so 
+ //will act as local task 
+  $items['admin/build/menu/treemenu/add'] = array(
+    'title' => 'Add taxonomy treemenu',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('taxonomy_treemenu_edit_menu', 'add'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer menu'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'taxonomy_treemenu.admin.inc',
+    //'file' => 'menu.admin.inc',
+    //'file path' => drupal_get_path('module', 'menu'),
+  );
+  
+  // For my grumble on this, see taxonomy_treemenu_edit_menu(), taxonomy_treemenu.admin.inc
+  // We're modifying the menu items by targeting specific
+  // treemenus, which specific urls over-ride the generalized ones in menu_menu.
+//  $menu_names = array_keys(variable_get('taxonomy_treemenu_data', array()));
+  $menu_names = TTMData::allNames();
+
+  if ($menu_names) {
+    foreach ($menu_names as $menu_name) {
+      // Redirects to our specially extended edit form.
+      // I'd like to skip this, but I havn't found a way of
+      // extending the edit form sucessfully, yet. They are big extensions...
+      $items['admin/build/menu-customize/' . $menu_name . '/edit'] = array(
+        //Need a custom callback to get the title
+        'title' => $menu_name,
+        'title callback' => 'taxonomy_treemenu_menu_title',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('taxonomy_treemenu_edit_menu', 'edit', 3),
+        'access callback' => 'user_access',        
+        'access arguments' => array('administer menu'),
+        'type' => MENU_CALLBACK,
+        'file' => 'taxonomy_treemenu.admin.inc',
+      );
+      
+      //I tried removing the 'add item' button for treemenus
+      //Well, rejig it as something invisible,
+      //using MENU_CALLBACK, which is Drupalish, though I'd
+      //like to remove it completly.
+      //Truth is, it doesn't, and forum topics suggest this is impossible without theming.
+      //My guess is that Drupal searches for the local tab urls, 
+      //then reduces them for the page.
+      //Thus it always finds the menu_menu wildcard entry,
+      //even if we over-ride it for the page itself.
+      //We can't use menu links alter, as this is a router item.
+      // We can do this, though, redirct back with a warning message...
+      $items['admin/build/menu-customize/' . $menu_name . '/add'] = array(      
+        'title' => 'Add (no do not) item',
+        'description' => 'You can not do this action.',
+        'page callback' => 'taxonomy_treemenu_tab_redirect',
+        'page arguments' => array('admin/build/menu-customize/' . $menu_name),
+        'access arguments' => array('administer menu'),
+        'type' => MENU_CALLBACK,
+      );   
+    }
+  }
+
+  //Put the rebuild link in admin, but if devel is loaded, put it there.
+  if (module_exists('devel')) {
+    $items['devel/treemenu-rebuild'] = array(
+      'title' => 'Rebuild treemenus',
+      'description' => 'Manually rebuild singular treemenus. Drastic action, for troubled times.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('taxonomy_treemenu_menu_update'),
+      'access arguments' => array('access devel information'),
+      //dunno what this is exactly, but its needed.
+      'menu_name' => 'devel',
+      'file' => 'taxonomy_treemenu.admin.inc',
+    );     
+  }
+  else {
+    $items['admin/treemenu-rebuild'] = array(
+      'title' => 'Rebuild treemenus',
+      'description' => 'Manually rebuild singular treemenus. Drastic action, for troubled times.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('taxonomy_treemenu_menu_update'),
+      'access callback' => 'user_access',
+      'access arguments' => array('administer menu'),
+      //'type' => MENU_LOCAL_TASK,
+      //'weight' => 5,
+      'file' => 'taxonomy_treemenu.admin.inc',
+    );
+  }
+
+  //The new ones.
+  // (NOTE: So long as the router title is generic garbage, t() is not called.
+  //  That's fine, as the link renderer will do a plain/xss check)
+  // Proposed format is /ttm/[menu-name]/[path]/['node'|'term'/id]
+  // I'd love to redefine the title callbacks into custom localization,
+  // but that won't work for stock links, so it will have to be hooks.
+  $items['ttm/%taxonomy_treemenu'] = array(
+    //'title' => t('taxonomy_treemenu'),
+    'page callback' => 'taxonomy_treemenu_page',
+    'page arguments' => array(1),
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK
+  );
+
+  $items['ttm/%taxonomy_treemenu_mlid/%taxonomy_treemenu'] = array(
+    //'title' => t('taxonomy_treemenu'),
+    'page callback' => 'taxonomy_treemenu_mlid_page',
+    'page arguments' => array(1, 2),
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK
+  );
+
+  // The menu system gathers nodes aside from other links.
+  // We use defined paths so node/term links are easy to identify.
+  // despite the repetitiveness... despite the repetition...
+  //$items['ttm/%taxonomy_treemenu/node/%taxonomy_treemenu_id'] = array(
+  $items['ttm/%taxonomy_treemenu/node/%node'] = array(
+    //'title callback' => t('taxonomy_treemenu_page_title'),
+    //'title arguments' => array(1),
+    'page callback' => 'taxonomy_treemenu_node_page',
+    'page arguments' => array(1, 3),
+    'access callback' => 'node_access',
+    'access arguments' => array('view', 3),
+    'type' => MENU_CALLBACK
+  );
+
+
+  $items['ttm/%taxonomy_treemenu/term/%taxonomy_treemenu_term_str'] = array(
+    //'title callback' => t('taxonomy_treemenu_page_title'),
+    //'title arguments' => array(1),
+    'page callback' => 'taxonomy_treemenu_term_page',
+    'page arguments' => array(1, 3),
+    //'load arguments' => array(1, 3),
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK
+  );
+  //end here
+
+
+
+  // If Views is not loaded, tell the menu router items to load treemenu's
+  //  internal provision, on demand.
+  //if(!module_exists('views')) {
+  //   $items['taxmenu/%taxonomy_treemenu_ttid/page/%taxmenu_tid_trail/%taxonomy_treemenu_tid']['file'] = '/includes/taxonomy_treemenu.pages.inc';
+  //   $items['taxmenu/%taxonomy_treemenu_ttid/term/%taxmenu_tid_trail/%taxonomy_treemenu_tid']['file'] = '/includes/taxonomy_treemenu.pages.inc';
+  //}
+
+  return $items;
+}
+
+
+/**
+ * Implementation of menu 'title callback'
+ */
+ //This is just rotten. A title callback - 'edge cases' the documentation calls it.
+ //But until we can set the titles on our highly modified edit form, which we can't,
+ //and until we implement a database and loader, which is of marginal use when we can't
+ //override the main menu, we do this.
+ //TODO:will get_args do it?
+
+function taxonomy_treemenu_menu_title($menu_name) {
+  $result = db_fetch_object(db_query("SELECT title FROM {menu_custom} WHERE menu_name = '%s'", $menu_name));
+  return t($result->title);
+}
+
+/*
+function taxonomy_treemenu_page_title($ttm) {
+  return t($ttm['title']);
+}
+*/
+
+function taxonomy_treemenu_human_title($ttm) {
+  return substr($ttm['menu_name'], 5);
+}
+
+function taxonomy_treemenu_term_title($tid) {
+  $t = db_result(db_query("SELECT name FROM {term_data} WHERE tid = %d", $tid));
+  return $t;
+}
+
+/****************************
+ * URL verifiers and loaders
+ ***************************/
+
+
+/**
+ * Numeric tid loader.
+ * @param <type> $id
+ * @return <type>
+ */
+// No need to load the item, as its only a target.
+function taxonomy_treemenu_term_str_load($str_tids) {
+  $terms = taxonomy_terms_parse_string($str_tids);
+  if ($terms['operator'] != 'and' && $terms['operator'] != 'or') {
+    drupal_not_found();
+  }
+  return $terms;
+  return is_numeric($id) ? $id : FALSE;
+}
+
+
+// TOCONSIDER:Following are currently unused?
+/**
+ * We don't load as the user may be using Views, which loads by itself.'
+ * Since we use further loaders, we don't test for existance.
+ * @param $nid
+ * @return
+ *   A verified nid.
+ */
+function taxonomy_treemenu_nid_load($nid) {
+  return is_numeric($nid) ? $nid : FALSE;
+}
+
+/**
+ * Verifies a tid exists and is numeric, but doesn't load the associated term data.
+ *
+ * @param $tid
+ * @return
+ *   A verified tid.
+ */
+function taxonomy_treemenu_tid_load($tid) {
+  return is_numeric($tid) ? $tid : FALSE;
+}
+
+function taxonomy_treemenu_mlid_load($mlid) {
+  return is_numeric($mlid) ? $mlid : FALSE;
+}
+
+/***************************
+ * Taxmenu data loaders
+ **************************/
+
+
+
+ /**
+  * Load settings data for a named treemenu.
+  * Optional argument loads also the descriptive information from custom menu.
+  *
+  * @param $menu_name
+  * @param boolean $custom_menu_data
+  * @return array of data, or FALSE
+  */
+function taxonomy_treemenu_load($menu_name, $custom_menu_data = TRUE) {
+  //dpm('treemnu load');
+  if (!check_plain($menu_name)) {
+    return FALSE;
+  }
+  
+  if ($custom_menu_data) {
+    $result = db_query("SELECT * FROM {taxonomy_treemenu} tt INNER JOIN {menu_custom} mc ON tt.menu_name = mc.menu_name WHERE tt.menu_name = '%s'", $menu_name);
+  }
+  else {
+    $result = db_query("SELECT * FROM {taxonomy_treemenu} WHERE menu_name = '%s'", $menu_name);
+  }
+
+  return db_fetch_array($result);
+}
+
+
+
+/**
+ * Returns an array, because we like arrays,
+ * and doesn't cache, unlike taxonomy_get_term($tid).
+ *
+ * @param <type> $tid
+ * @return <type>
+ */
+function taxonomy_treemenu_get_term($tid) {
+  return db_fetch_array(db_query('SELECT * FROM {term_data} WHERE tid = %d', $tid));
+}
+
+
+
+/*********************
+ *Options retrieval
+ *********************/
+
+/**
+ * Treemenu needs to recover many options from the database,
+ * sometimes with adjustments for zero/type and the like.
+ * Rather than marking them all as loaders, or using geeralized calls,
+ * the functions are gathered here.
+ * And some specialized savers, too.
+ */
+class TTMData
+{
+  static function depth($menu_name) {
+    $result = db_query("SELECT depth FROM {taxonomy_treemenu} WHERE menu_name = '%s'", $menu_name);
+    $depth = db_result($result);
+    return ($depth == 0) ? MENU_MAX_DEPTH : $depth;
+  }
+
+  static function allNames() {
+    $names = array();
+    $result = db_query("SELECT menu_name FROM {taxonomy_treemenu}");
+    while ($tm = db_fetch_array($result)) {
+      $names[] = $tm['menu_name'];
+    }
+    return $names;
+  }
+
+  static function allNamesDisplay() {
+    $names = array();
+    $result = db_query("SELECT tt.menu_name, mc.title FROM {taxonomy_treemenu} tt INNER JOIN {menu_custom} mc ON tt.menu_name = mc.menu_name");
+    while ($tm = db_fetch_array($result)) {
+      $names[$tm['menu_name']] = $tm['title'];
+    }
+    return $names;
+  }
+
+  static function pageUrl($menu_name) {
+    return l(url(TTM_URLROOT . $menu_name), TTM_URLROOT. $menu_name);
+  }
+
+  // Return FALSE or the check_plained menu_name.
+  static function validateMenuName($menu_name) {
+    $menu_name = check_plain($menu_name);
+    $result = db_query("SELECT menu_name FROM {taxonomy_treemenu} WHERE menu_name = '%s'", $menu_name);
+    return db_result($result);
+  }
+  
+  //returns FALSE on fail.
+  static function opts($menu_name) {
+    $result = db_query("SELECT options FROM {taxonomy_treemenu} WHERE menu_name = '%s'", $menu_name);
+    $tm = db_fetch_array($result);
+    return unserialize($tm['options']);
+  }
+
+   /**
+   * Return an associative array of treemenu names, titles, and dhtml_block flags.
+   * Quite specific. Used in block calls.
+   *
+   * @return
+   *   Associative array with the machine-readable menu names as the keys.
+   */
+  static function block() {
+    $menu_data = array();
+    $result = db_query("SELECT tt.menu_name, title, dhtml_blocks FROM {taxonomy_treemenu} tt INNER JOIN {menu_custom} mc ON tt.menu_name = mc.menu_name");
+    while ($tm = db_fetch_array($result)) {
+      $menu_data[$tm['menu_name']] = $tm;
+    }
+    ksort($menu_data);
+    return $menu_data;
+  }
+
+  static function getDHTML($menu_name) {
+    return db_fetch_array(db_query("SELECT dhtml_blocks, dhtml_pages FROM {taxonomy_treemenu} WHERE menu_name = '%s'", $menu_name));
+  }
+
+  static function setDHTML($menu_name, $data) {
+    db_query("UPDATE {taxonomy_treemenu} SET dhtml_blocks = %d, dhtml_pages = %d WHERE menu_name = '%s'", $data['dhtml_blocks'], $data['dhtml_pages'], $menu_name);
+  }
+
+  static function isMultiple($menu_name) {
+    $data = db_fetch_array(db_query("SELECT v.hierarchy, v.multiple FROM  {taxonomy_treemenu} tt INNER JOIN {vocabulary} v ON tt.vid = v.vid WHERE tt.menu_name = '%s'", $menu_name));
+    //dpm('multiple:');
+    //dpm($menu_name);
+    //dvm($data);
+    //return (($data['hierarchy'] == 2) || ($data['nodes'] && ($data['multiple'])));
+    $data['hierarchy'] = ($data['hierarchy'] == 2);
+    $data['multiple'] = ($data['hierarchy'] || $data['multiple']);
+    return $data;
+  }
+
+  static function isMultipleStatusData($menu_name) {
+    $data = db_fetch_array(db_query("SELECT v.hierarchy, v.multiple FROM  {taxonomy_treemenu} tt INNER JOIN {vocabulary} v ON tt.vid = v.vid WHERE tt.menu_name = '%s'", $menu_name));
+    //dpm('multiple:');
+    //dpm($menu_name);
+    //dvm($data);
+    $t = ($data['hierarchy'] == 2) ? 'multiple' : 'single';
+    $n = ($data['multiple']) ? 'multiple' : 'single';
+    return array('terms' => $t, 'nodes' => $n);
+  }
+
+  static function vocabularyStatusData($menu_name) {
+    $data = db_fetch_array(db_query("SELECT v.relations, v.tags FROM  {taxonomy_treemenu} tt INNER JOIN {vocabulary} v ON tt.vid = v.vid WHERE tt.menu_name = '%s'", $menu_name));
+    $data['relations'] =$data['relations'] ? 'yes' : 'no';
+    $data['tags'] =$data['tags'] ? 'yes' : 'no';
+    return $data;
+  }
+
+  static function rootDataDisplay($menu_name) {
+    $vd = db_fetch_array(db_query("SELECT v.name, v.description FROM {taxonomy_treemenu} tt INNER JOIN {vocabulary} v ON tt.vid = v.vid WHERE tt.menu_name = '%s'", $menu_name));
+
+    $td = db_fetch_array(db_query("SELECT t.name, t.description FROM {taxonomy_treemenu} tt INNER JOIN {term_data} t ON tt.tid = t.tid WHERE tt.menu_name = '%s'", $menu_name));
+    if (!$td['name']) {
+      $td['name'] = $td['description'] = '(menu built from vocab)';
+    }
+    return array($vd, $td);
+  }
+
+  static function rootData($menu_name) {
+    return db_fetch_array(db_query("SELECT vid, tid FROM {taxonomy_treemenu} WHERE menu_name = '%s'", $menu_name));
+  }
+
+  static function rootDataAll() {
+    $tms = array();
+    $result = db_query("SELECT menu_name, vid, tid FROM {taxonomy_treemenu}");
+    while ($tm = db_fetch_array($result)) $tms[] = $tm;
+    return $tms;
+  }
+  
+  // Good for views, maybe on all_data menus. Untested.
+  static function allTids($menu_name) {
+    $b = new TTMBranch();
+    $b->setFromTTMenu($menu_name);
+    return $b->descendantTids(self::depth($menu_name));
+  }
+
+  // EOC
+}
+
+
+/**********************
+ * Branch class
+ ************************/
+
+// Branches always have vids. Maybe we should assert?
+class TTMBranch
+{
+    public $vid, $tid;
+
+    // Integer cast?
+    function set($vid, $tid) {
+      $this->vid = $vid;
+      $this->tid = $tid;
+    }
+
+    function setFromTTMenu($menu_name) {
+      $tm = db_fetch_array(db_query("SELECT vid, tid FROM {taxonomy_treemenu} WHERE menu_name = '%s'", $menu_name));
+      $this->vid = $tm['vid'];
+      $this->tid = $tm['tid'];
+    }
+
+    // Find the branch which is the leaf of the lineage.
+    function setFromLineage($lineage) {
+     $this->vid = (int) substr($lineage, 0, (strpos($lineage, ':')));
+     $this->tid = (int) taxonomy_treemenu_tid_from_lineage($lineage);
+      //$bits = explode('/', $lineage);
+      //$c = count($bits);
+      //$this->vid = (int) $bits[0];
+
+      //$this->tid = (int) $bits[$c-2];
+    }
+
+    // Tested
+    function getDisplayData() {
+      if ($this->tid == '0') {
+        //vocabulary
+        $result = db_query('SELECT name, description, weight FROM {vocabulary} WHERE vid = %d', $this->vid);
+      }
+      else {
+        //term
+        $result = db_query('SELECT name, description, weight FROM {term_data} WHERE tid = %d', $this->tid);
+      }
+      return db_fetch_array($result);
+    }
+    
+
+    function asRootLineage() {
+      $path = $this->vid .':';
+      if ($this->tid != '0') {
+        $path = $path . '/' . $this->tid .'/';
+      };
+      return $path;
+    }
+
+
+    // There's some rotten type handling here, as the PHP engine insists on
+    // making the variables in this class into strings. Won't argue.
+    // But what is ($this->tid == '0')? Humm. PHP seems to like it?!
+    // Hence this function, anyhow. Please do not remove - you never know...
+    function displayBranch() {
+       dpm('Branch:');
+       dvm($this->vid);
+       dvm($this->tid);
+    }
+
+  public function descendantTids($depth) {
+    //dpm($depth);
+    //dpm($this->tid);
+    return $this->_descendantTids($this->tid, -1, $depth);
+  }
+
+  private function _descendantTids($parent = 0, $depth_count = -1, $depth = 0) {
+   static $children, $parents;
+
+    $depth_count++;
+    // We cache trees, so it's not CPU-intensive to call get_tree() on a term
+    // and it's children, too.
+    if (!isset($children[$vid])) {
+      $children[$vid] = array();
+
+      $result = db_query(db_rewrite_sql('SELECT t.tid, parent FROM {term_data} t INNER JOIN {term_hierarchy} h ON t.tid = h.tid WHERE t.vid = %d ORDER BY weight, name', 't', 'tid'), $this->vid);
+      while ($term = db_fetch_object($result)) {
+        $children[$vid][$term->parent][] = $term->tid;
+        $parents[$vid][$term->tid][] = $term->parent;
+      }
+    }
+
+    $tids = array();
+    if ($depth > $depth_count && !empty($children[$vid][$parent])) {
+      foreach ($children[$vid][$parent] as $child) {
+        $tids[] = $child;
+        if (!empty($children[$vid][$child])) {
+          $tids = array_merge($tids, $this->_descendantTids($child, $depth_count, $depth));
+        }
+      }
+    }
+
+    return $tids;
+  }
+
+  // Find the children of the branch, respecting the vocabulary.
+  // Heedless of language, unless parameter is set.
+  // NOTE: For translation purposes, see also taxonomy_treemenu_linktree_partial_create(),
+  // which handles menu trees.
+  /**
+   * Find the children of a branch.
+   * @param $i18n_selection_mode
+   *   String for i18n, if the module exists. Will return 'default' by default.
+   * @return tids
+   */
+  function childTids($i18n_selection_mode = 'default') {
+    //dpm('child');
+    //dvm($default_language);
+
+        //dpm('i18n root lockout');
+        //i18n_selection_mode('custom', "v.language = '". $langcode ."'");
+      if (module_exists('i18ntaxonomy')) i18n_selection_mode($i18n_selection_mode);
+
+    $result = db_query(db_rewrite_sql('SELECT t.tid FROM {term_data} t INNER JOIN {term_hierarchy} h ON h.tid = t.tid
+                                       WHERE t.vid = %d AND h.parent = %d', 't', 'tid'), $this->vid, $this->tid);
+
+      if (module_exists('i18ntaxonomy')) i18n_selection_mode('reset');
+
+    $children = array();
+    while ($child = db_fetch_array($result)) {
+      $children[] = $child['tid'];
+    }
+    return $children;
+  }
+
+  /**
+   * Find treemenu items by supplied taxonomy references
+   */
+  //TODO: Currently unused?
+  function menuItems($vid, $tid) {
+    $result = NULL;
+    if ($tid != 0) { 
+      $placeholder = " (tlineage LIKE '" . $this->vid . ":%/" . $this->tid ."/')";
+      $result = db_query("SELECT * FROM {menu_links} WHERE " . $placeholder . " AND module = '%s'", 'treemenu');
+    }
+    return $result;
+  }
+
+  // EOC
+}
+
+
+
+/**
+ * Get the final tid from the lineage.
+ * Lineages are always at leat two items long,
+ * so we need not worry about the vocab item.
+ * @param $lineage
+ * @return The end (leaf) tid
+ */
+function taxonomy_treemenu_tid_from_lineage($lineage) {
+     $spos = strrpos($lineage  , '/', -2) + 1;
+     $tag_len = strlen($lineage) - $spos -1;
+     return substr($lineage, $spos, $tag_len);
+    //$index_tail = strrpos($lineage, '/');
+    //$index_tail++;
+    //return substr($lineage, $index_tail);
+}
+
+
+/**
+ * Implementation of hook_block().
+ */
+// We can't provoke the system auto-generated treemenus into basic funtionality.
+//Which suggests overriding the blocks - which is inmpossible. DHTML menu does this by
+// preprocessing the block, tidy, but means the block is built twice (sure they
+// are sad about this).
+// We use the untidy solution of a separate block, and preprocessing system
+// provided system blocks to return a warning message.
+function taxonomy_treemenu_block($op = 'list', $delta = 0) {
+  if ($menus = TTMData::block()) {
+    if ($op == 'list') {
+      $blocks = array();
+      foreach ($menus as $menu_name => $data) {
+        // Tag with ' - treemenu', as we can't stop the stock listing.
+        $blocks[$menu_name]['info'] = check_plain($data['title'] . ' - treemenu');
+        // Menu blocks can't be cached because each menu item can have
+        // a custom access callback. menu.inc manages its own caching.
+        $blocks[$menu_name]['cache'] = BLOCK_NO_CACHE;
+      }
+      return $blocks;
+    }
+    else if ($op == 'view') {
+      //dvm($delta);
+      $data['subject'] = check_plain($menus[$delta]['title']);
+      // If the menu has the DHTML menu option enabled,
+      // use a staic menu and theme with 'dhtml_menu_tree'.
+      if (module_exists('dhtml_menu') && $menus[$delta]['dhtml_blocks']) {
+        //dpm('ttm render dhtml block');
+        $data['content'] = theme('dhtml_menu_tree', taxonomy_treemenu_tree_data(taxonomy_treemenu_load($delta)));
+      }
+      else {
+        //dpm('ttm render block');
+
+        $data['content'] = taxonomy_treemenu_render_block($delta);
+      }
+      return $data;
+    }
+  }
+}
+
+
+/**
+ * Parses a comma or plus separated string of term IDs.
+ *
+ * @param $str_tids
+ *   A string of term IDs, separated by plus or comma.
+ *   comma (,) means AND
+ *   plus (+) means OR
+ *
+ * @return an associative array with an operator key (either 'and'
+ *   or 'or') and a tid key containing an array of the term ids.
+ */
+  //Term data
+  //Straight lift of taxonomy_terms_parse_string() from taxomony.module
+  //Makes one zero tid if nothing validates?
+function taxonomy_treemenu_terms_parse_string($str_tids) {
+  $terms = array('operator' => '', 'tids' => array());
+  if (preg_match('/^([0-9]+[+ ])+[0-9]+$/', $str_tids)) {
+    $terms['operator'] = 'or';
+    // The '+' character in a query string may be parsed as ' '.
+    $terms['tids'] = preg_split('/[+ ]/', $str_tids);
+  }
+  else if (preg_match('/^([0-9]+,)*[0-9]+$/', $str_tids)) {
+    $terms['operator'] = 'and';
+    $terms['tids'] = explode(',', $str_tids);
+  }
+  return $terms;
+}
+
+
+/******************************************************
+ * Code to redirect a user to the previous page.
+ * Used in various admin functions and disabled links.
+ *******************************************************/
+
+/**
+ * Menu callback; clears all caches, then redirects to the previous page.
+ */
+function taxonomy_treemenu_tab_redirect($prev_url) {
+  drupal_set_message('Sorry, you can not add items to a treemenu, which is generated automatically. Try altering the underlying taxonomy. Any changes there will be respected in the menu.');
+  drupal_goto($prev_url);
+}
+
+/**
+ * Implementation of hook_menu_link_alter().
+ * Used to redirect a user straight back to the original page.
+ */
+function taxonomy_treemenu_menu_link_alter(&$item, &$menu) {
+//dpm('menu_link_alter');
+  if (in_array($item['link_path'], taxonomy_treemenu_menu_need_destination())) {
+    $item['options']['alter'] = TRUE;
+  }
+}
+
+
+/**
+ * Implementation of hook_translated_menu_link_alter().
+ * 
+ */
+function taxonomy_treemenu_translated_menu_link_alter(&$item) {
+  global $language;
+    //dpm($language->language);
+  // This used by the emergency rebuild page to redirect a user straight back
+  // to the original page.
+  if (in_array($item['href'], taxonomy_treemenu_menu_need_destination())) {
+    $item['localized_options']['query'] = drupal_get_destination();
+  }
+
+  // Multilingual localization. Wouldn't call the hook if not multilingual.
+  // This is the crux of the node count link HTML provision. If we put it into
+  // the link data (for everything), that's cool, but then we have to get hold of stock
+  // routes such as /taxonomy/term/% and tell them they have to check_plain(). Bad.
+  // We can't do option alteration in the TTM treebuilder, because the menus can be exposed
+  // for other modules. Which leaves us with end decisions, vis, what happens here.
+  // One day, all this will be better.
+  if ($item['module'] == 'treemenu' ) {
+    //dpm('multilingual hook');
+    //dpm($item['title']);
+
+    // Multilingual links are always checked then HTMLed.
+    //if ($item['title'] == 'food') dpm($item);
+      $langcode = $item['localized_options']['language'] ? $item['localized_options']['language'] : $language->language;
+      $item['href'] = $item['localized_options'][$langcode]['href'];
+      $item['title'] = check_plain($item['localized_options'][$langcode]['title']);
+        if ($item['link']['duplicate']) {
+          $item['link']['title'] = '<small><i>' . $item['link']['title'] . '</i></small>';
+        }
+        else {
+          $item['link']['title'] .= $item['link']['node_count'];
+        }
+      $item['localized_options']['html'] = true;
+    //dpm($item);
+  }
+}
+
+/**
+ * Array of links which should redirect a user back to their original page.
+ */
+function taxonomy_treemenu_menu_need_destination() {
+  return array('admin/treemenu-rebuild', 'devel/treemenu-rebuild');
+}
+
+
+/***************************
+ * DHTML menu compatibility
+ ***************************/
+//We could try overriding function by function, but the control ciruitry is
+//fairly small, so we duplicate it.
+//
+
+/**
+ * Save the DHTML options
+ *
+ * @ingroup form
+ */
+//See note to function below
+/*
+function _taxonomy_treemenu_form_block_submit(&$form, $form_state) {
+  $menu_name = $form_state['values']['delta'];
+  $data = TTMData::getDHTML($menu_name);
+  if ($form_state['values']['dhtml_menu']) {
+    $data['dhtml_pages'] = 0;
+  }
+  $data['dhtml_blocks'] = $form_state['values']['dhtml_menu'];
+  TTMData::setDHTML($menu_name, $data);
+}
+*/
+// TOCONSIDER: as of DHTML Menu 5.3, this is unused. It says put,
+// because we do not know where that module is heading.
+/**
+ * Implementation of hook_form_alter().
+ * @ingroup form
+ */
+/*
+function taxonomy_treemenu_form_block_admin_configure_alter(&$form, $form_state) {
+  // Modify the form if DHTML Menu is enabled and it is a treemenu.
+  if (module_exists('dhtml_menu') && $form['module']['#value'] == 'taxonomy_treemenu') {
+    $menu_name = $form['delta']['#value'];
+    $data = TTMData::getDHTML($menu_name);
+    $form['dhtml_menu'] = array(
+      '#default_value'  => $data['dhtml_blocks'],
+      '#title'          => t('Use the DHTML effect on !menu_name in blocks.', array('!menu_name' => $menu_name)),
+      '#description'    => t("If you switch this on, then page DHTML is disabled - the DHTML gets confused if two similar menus share the same page."),
+      '#type'           => 'checkbox',
+      '#weight'         => -3,
+    );
+    $form['#submit']['_taxonomy_treemenu_form_block_submit'] = '_taxonomy_treemenu_form_block_submit';
+  }
+}
+*/
+
+
+
+/**
+ * Implementation of hook_preprocess_block().
+ * Puts warning message in place of system-provided taxonomy treemenu blocks.
+ *
+ * @ingroup themable
+ */
+function taxonomy_treemenu_preprocess_block(&$variables) {
+  $delta = $variables['block']->delta;
+  $module = $variables['block']->module;
+
+  $menu_names = TTMData::allNames();
+
+  if ($module == "menu" && in_array($delta, $menu_names)) {
+      $variables['block']->content = '<p>' . t("Taxonomy Treemenu overrides menu blocks provided by core. To view this menu, promote the treemenu block of the same name with the suffix ' - treemenu'.") . '</p>';
+      $variables['block']->content .= '<p>' . t("If you see this message we offer our apologies. We use this solution because it is efficient.") . '</p>';
+  }
+}
+
+
+
+/*************************************************
+ * Various override/hook functions for data admin.
+ *************************************************/
+
+/**
+ * Implementation of hook_taxonomy.
+ */
+/*
+This is a hook. All it's data comes from taxonomy calling back.
+And I don't think we want it rewritable.
+*/
+function taxonomy_treemenu_taxonomy($op, $type, $object = NULL) {
+  //dpm('hook_taxonomy');
+  //dpm('$op: '. $op .' $type: '.$type);
+  //dvm($object);
+  
+  if ($op == 'delete' && $type == 'vocabulary') {
+    //Well, any treemenu using the vocabulary is history, so...
+    $ttms = TTMData::rootDataAll();
+    foreach ($ttms as $ttm) {
+      if ($ttm['vid'] == $object['vid']) {
+        _taxonomy_treemenu_delete_menu($ttm['menu_name']);
+      }
+    }    
+  }  
+  
+
+  if ($op == 'delete' && $type == 'term') {
+    //dpm('tt delete term');
+    $placeholder = $object['vid'] .":%/". $object['tid'] ."/";
+    $result = db_query("SELECT mlid FROM {menu_links} WHERE tlineage LIKE'". $placeholder ."' AND module='%s'", 'treemenu');
+    while($data = db_fetch_array($result)) {
+      // This is a tree delete (children deleted also).
+        menu_link_delete($data['mlid']);
+    }
+
+    $ttms = TTMData::rootDataAll();
+    foreach ($ttms as $ttm) {
+      if ($ttm['vid'] == $object['vid'] && $ttm['tid'] == $object['tid']) {
+        //Yow! Term deleted is a menu root.
+        //The term is gone, let's trash the menu.
+        _taxonomy_treemenu_delete_menu($ttm['menu_name']);
+      }
+    }
+  }
+  
+  //Mainly, if we move or create a term.
+  if (($op == 'insert' || $op == 'update') && $type == 'term') {
+    taxonomy_treemenu_term_links_update($object);
+  }
+}
+
+
+/**
+ * Delete a taxonomy treemenu, including data held by the module.
+ * @param <type> $menu_name 
+ */
+function _taxonomy_treemenu_delete_menu($menu_name) {
+  // Reset all the menu links defined by the system via hook_menu. /add and /edit...
+  // I don't know why they are reset, why not delete? They stay live until a menu rebuild?
+  // They don't show, though, is this efficient?
+  $result = db_query("SELECT * FROM {menu_links} ml INNER JOIN {menu_router} m ON ml.router_path = m.path WHERE ml.menu_name = '%s' AND ml.module = 'system' ORDER BY m.number_parts ASC", $menu_name);
+  while ($item = db_fetch_array($result)) {
+    menu_reset_item($item);
+  }
+ 
+  // Delete links to the overview page for this menu.
+  $result = db_query("SELECT mlid FROM {menu_links} ml WHERE ml.link_path = '%s'", 'admin/build/menu-customize/'. $menu_name);
+  while ($m = db_fetch_array($result)) {
+    menu_link_delete($m['mlid']);
+  }
+  // Delete all the links in the menu. Note
+  db_query("DELETE FROM {menu_links} WHERE menu_name = '%s'", $menu_name);
+  //  ...and the menu data from {custom menus}.
+  db_query("DELETE FROM {menu_custom} WHERE menu_name = '%s'", $menu_name);
+  // Delete all the blocks for this menu.
+  db_query("DELETE FROM {blocks} WHERE module = 'menu' AND delta = '%s'", $menu_name);
+  db_query("DELETE FROM {blocks_roles} WHERE module = 'menu' AND delta = '%s'", $menu_name);
+  menu_cache_clear_all();
+  cache_clear_all();
+  $t_args = array('%title' => $menu_name);
+  drupal_set_message(t('The custom menu %title has been deleted.', $t_args));
+  watchdog('menu', 'Deleted custom menu %title and all its menu items.', $t_args, WATCHDOG_NOTICE);
+  // Delete treemenu data
+  taxonomy_treemenu_delete_menu_data($menu_name);  
+}
+
+
+function taxonomy_treemenu_delete_menu_data($menu_name) {
+  db_query("DELETE FROM {taxonomy_treemenu} WHERE menu_name = '%s'", $menu_name);
+  $t_args = array('%title' => $menu_name);  
+  drupal_set_message(t('...and the treemenu data associated with it.'));
+  watchdog('menu', 'Deleted element %title from treemenu variable.', $t_args, WATCHDOG_NOTICE);
+}
+
+
+/*
+ * Additional Callbacks
+ * Here, not in .amin.inc because there is a scoping problem
+ * with gaining callbacks for re-routed submit calls.
+ * I suppose the way to go is to reroute,
+ * which can then pull in the menu functions AND the extra stuff
+ * but the functions are small, so they are here for now.
+ * 
+*/
+
+/**
+ * Submit to change node count on treemeu controlled term pages.
+ * @param <type> $form
+ * @param <type> $form_state
+ */
+function taxonomy_treemenu_form_node_configure_submit($form, &$form_state) {
+  variable_set('default_nodes_taxonomy_treemenu_main', $form_state['values']['default_nodes_taxonomy_treemenu_main']);
+}
+
+/**
+ * Implementation of hook_form_alter()
+ * Sets a vaiable for use by treemeu controlled term pages.
+ * @param <type> $form
+ * @param <type> $form_state
+ */
+function taxonomy_treemenu_form_node_configure_alter(&$form, $form_state) {
+  $form['default_nodes_taxonomy_treemenu_main'] = array(
+    '#type' => 'select', '#title' => t('Number of posts on a taxononomy treemenu controlled term page'), '#default_value' => variable_get('default_nodes_taxonomy_treemenu_main', 30),
+    '#options' => drupal_map_assoc(array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 35, 40, 45, 50)),
+    '#description' => t('The default maximum number of posts to display per page when using the internal term theme.'),
+    '#weight' => -1,
+  );
+   $form['#submit'][] = 'taxonomy_treemenu_form_node_configure_submit';
+}
+
+
+
+/**
+ * Additional confirm deletion for custom menu deletion.
+ * Deletes all relevant menu data from treemenu variable. 
+ */
+function taxonomy_treemenu_delete_menu_confirm_submit($form, &$form_state) {
+  $menu_name = $form['#menu']['menu_name'];
+  taxonomy_treemenu_delete_menu_data($menu_name);
+}
+
+
+/**
+ * Implementation of hook_theme_registry_alter
+ * For purposes of re-themeing menu overview pages.
+ */
+//radical registry redirection!
+//seems very clumsy, but I've got to get hold of the javascript before rendering starts.
+function taxonomy_treemenu_theme_registry_alter(&$theme_registry) {
+  // Assuming you have the devel module installed
+ // dsm($theme_registry);
+  if (!empty($theme_registry['menu_overview_form'])) {
+    $theme_registry['menu_overview_form']['function'] = 'taxonomy_treemenu_menu_overview';
+    $theme_registry['menu_overview_form']['file'] = 'taxonomy_treemenu.module';
+    $theme_registry['menu_overview_form']['path'] = drupal_get_path('module', 'taxonomy_treemenu');
+            //$theme_registry['menu_overview_form']['paths'] =
+    //drupal_rebuild_theme_registry();
+  }
+   if (!empty($theme_registry['form_element'])) {
+    //$theme_registry['form_element']['function'] = 'taxonomy_treemenu_form_element';
+  }
+}
+
+
+/**
+ * 'tis a theme alteration by any other name. But dammned drastic.
+ */
+// Clipped wholesale from theme_menu_overview_form($form) in menu.admin.inc
+// If it's commented out, we don't need it.
+// TOCONSIDER: Please don't delete commented lines. For example, 'expanded' would
+// be used with mlid URLs.
+function taxonomy_treemenu_menu_overview($form) {
+  // Here, we provide our customized version of the
+  // theme_form_element function from theme.inc...
+  //dpm($form);
+  $ttm = TTMData::allNames();
+  if (in_array($form['#menu']['menu_name'], $ttm)) {
+      drupal_set_message(t('This menu is a <b>treemenu</b>, automatically generated from a taxonomy. 
+      Some of the usual editing options are removed. To change item order or parentage, change the underlying taxonomy.'), 'warning');
+      //what follows here is directly clipped from theme_menu_overview_form($form)
+      //this seems horribly inefficient,(is unDRY WET?) but the javascript needs to be removed,
+      // and I know no way of tweaking the form to do that.
+      $header = array(
+        t('Menu item'),
+        array('data' => t('Enabled'), 'class' => 'checkbox'),
+        array('data' => t('Expanded'), 'class' => 'checkbox'),
+        //t('Weight'),
+        //array('data' => t('Operations'), 'colspan' => '3'),
+      );
+    
+      $rows = array();
+      foreach (element_children($form) as $mlid) {
+        if (isset($form[$mlid]['hidden'])) {
+          $element = &$form[$mlid];
+          // Build a list of operations.
+          //$operations = array();
+          //foreach (element_children($element['operations']) as $op) {
+          //  $operations[] = drupal_render($element['operations'][$op]);
+          //}
+          //while (count($operations) < 2) {
+          //  $operations[] = '';
+          //}
+    
+          // Add special classes to be used for tabledrag.js.
+          //$element['plid']['#attributes']['class'] = 'menu-plid';
+          //$element['mlid']['#attributes']['class'] = 'menu-mlid';
+          //$element['weight']['#attributes']['class'] = 'menu-weight';
+    
+          // Change the parent field to a hidden. This allows any value but hides the field.
+          $element['plid']['#type'] = 'hidden';
+
+          $row = array();
+          $row[] = theme('indentation', $element['#item']['depth'] - 1) . drupal_render($element['title']);
+          $row[] = array('data' => drupal_render($element['hidden']), 'class' => 'checkbox');
+          // NOTE:Expanded may have been hidden by taxonomy_treemenu_form_alter()
+          $row[] = array('data' => drupal_render($element['expanded']), 'class' => 'checkbox');
+
+          $row[] = drupal_render($element['weight']) . drupal_render($element['plid']) . drupal_render($element['mlid']);
+          //$row = array_merge($row, $operations);
+    
+          $row = array_merge(array('data' => $row), $element['#attributes']);
+          //$row['class'] = !empty($row['class']) ? $row['class'] .' draggable' : 'draggable';
+          $rows[] = $row;
+        }
+      }
+      $output = '';
+      if ($rows) {
+        $output .= theme('table', $header, $rows, array('id' => 'menu-overview'));
+    
+      }
+      $output .= drupal_render($form);
+         
+  } 
+  else {
+    require_once(drupal_get_path('module', 'menu') .'/menu.admin.inc');
+    $output = theme_menu_overview_form($form);
+  }
+  //dpr($form);
+  return $output;
+}
+
+
+/**
+ * Implementation of hook_form_ID_alter()
+ * Remove item editing capability from treemenus.
+ * See also the theme registry hack,
+ * which removes the javascript drag and drop.
+ * @param <type> $form
+ * @param <type> $form_state
+ */
+function taxonomy_treemenu_form_menu_overview_form_alter(&$form, &$form_state) {
+  $empty_array = array();
+  if (in_array($form['#menu']['menu_name'], TTMData::allNames())) {
+    $form['message'] = array(
+      '#value' => "<div class='messages status'>Some attributes can be set,
+       but if you reparent or update taxomony terms, they may be reset.</div>",
+      '#weight' => -1,
+    );
+
+    foreach (element_children($form) as $key) {
+        $form[$key]['operations'] = $empty_array;
+        $form[$key]['weight'] = $empty_array;
+        //if ($form[$key]['#item']['router_path'] == 'node/%') {
+        //       $form[$key]['expanded'] = $empty_array;
+        //}
+        // Hide the exapnds, but not remove so we stay API nice.
+        //$form[$key]['expanded']['#type'] = 'hidden';
+    }
+  };
+}
+
+
+/**
+ * Implementation of hook_form_ID_alter()
+ * Adds extra variable deletion on submit.
+ * @param <type> $form
+ * @param <type> $form_state
+ */
+function taxonomy_treemenu_form_menu_delete_menu_confirm_alter(&$form, &$form_state) {
+  if (in_array($form['#menu']['menu_name'], TTMData::allNames())) {
+    //dpm('added submit');
+    $form['#submit'][] = 'taxonomy_treemenu_delete_menu_confirm_submit';
+  }
+};
+
+
+/**!
+ * Implementation of hook_theme().
+ */
+function taxonomy_treemenu_theme() {
+  return array(
+   // 'taxonomy_treemenu_form_element' => array(
+    //  'arguments' => array('element' => NULL, 'value' => NULL)
+    //  ),
+    'taxonomy_admin_js_link' => array(
+      'arguments' => array('title' => NULL, 'id' => NULL)
+      ),
+    'branch_selector_by_gui' => array(
+      'arguments' => array('element' => NULL)
+      ),
+    'branch_selector_by_option' => array(
+      'arguments' => array('element' => NULL)
+      ),
+    'ttm_checkbox_raw' => array(
+      'arguments' => array('element' => NULL)
+      ),
+    'ttm_div' => array(
+      'arguments' => array('element' => NULL)
+      ),
+    'ttm_widget_container' => array(
+      'arguments' => array('element' => NULL)
+      ),
+    'ttm_tab_container' => array(
+      'arguments' => array('element' => NULL)
+      ),
+    'ttm_tab' => array(
+      'arguments' => array('element' => NULL)
+      ),
+    'ttm_tab_display' => array(
+      'arguments' => array('element' => NULL)
+      ),
+    'ttm_toggle' => array(
+      'arguments' => array('element' => NULL)
+      ),
+    //'ttm_checkbox_help' => array(
+      //'arguments' => array('element' => NULL)
+      //),
+    'depth' => array(
+      'arguments' => array('element' => NULL)
+      ),
+    //'taxonomy_treemenu_item_link' => array(
+      //'arguments' => array('link' => NULL)
+      //),
+    'taxonomy_treemenu_root_link' => array(
+      'arguments' => array('link_title' => NULL)
+      ),
+    'taxonomy_treemenu_breadcrumbs' => array(
+      'arguments' => array('breadcrumbs' => NULL),
+      ),
+    'taxonomy_treemenu_term_page' => array(
+      'arguments' => array('term' => NULL, 'result' => NULL),
+      ),
+       'taxonomy_treemenu_term_row' => array(
+        'arguments' => array('row' => NULL),
+        ),
+        'taxonomy_treemenu_term_row_data' => array(
+         'arguments' => array('data' => NULL),
+         ),
+     'taxonomy_treemenu_term_unformatted_page' => array(
+      'arguments' => array('term' => NULL, 'result' => NULL),
+      ),
+    'taxonomy_treemenu_menu_and_title' => array(
+      'arguments' => array('ttm' => NULL),
+      ),
+    'taxonomy_treemenu_menu' => array(
+      'arguments' => array('ttm' => NULL),
+      ),
+    'taxonomy_treemenu_view_row_node' => array(
+      'arguments' => array('node_data' => NULL, 'base_path' => NULL),
+      'template' => 'taxonomy-treemenu-view-row-node',
+      'path' => drupal_get_path('module', 'taxonomy_treemenu') . '/themes',
+      ),
+    'taxonomy_treemenu_view_term_nodes' => array(
+      'arguments' => array('term' => NULL),
+      'template' => 'taxonomy-treemenu-view-term-nodes',
+      'path' => drupal_get_path('module', 'taxonomy_treemenu') . '/themes',
+      ),
+  );
+}
+
+
+
+
+
+
+
+
+
+
+
+/*******************************************************************
+ * Menu link handling functions.
+ * Here follows the heavy lifting of this module.
+ ********************************************************************/
+
+/**
+ * Repopulate a basic link item with treemenu specifics, such as extended URLs
+ *  and descendant tid strings. Also handle a couple of hook calls.
+ * @param <type> $item
+ * @param <type> $ttm
+ * @param <type> $voc
+ * @param <type> $tid
+ * @param <type> $tp
+ * @param <type> $tr
+ */
+// NOTE: This is currently called over the whole menu, rather than summoning on the fly,
+// as link_updatesave_raw() doesn't take several of these values ($ttm/node/term routing etc.)
+function taxonomy_treemenu_menu_item_term_paths_and_title(&$item, $ttm, $voc, $tid, $tp, $tr) {
+  //dpm('taxonomy_treemenu_menu_item_term_paths_and_title');
+  // Should perhaps summon menu_link_alter(), but seems excessive on a derived menu?
+  $dts = array();
+  $term = taxonomy_get_term($tid);
+  $item['link_title'] = $term->name;
+  // Modify term links from base data to working links.
+  // Give any module with a hook_term_path() a say (e.g. path overrides from Term Redirect etc.).
+  if ($voc->module != 'taxonomy' && $path = module_invoke($voc->module, 'term_path', $term)) {
+    $item['link_path'] = $path;
+    $item['router_path'] = _menu_find_router_path($path);
+    //dpm('found router path');
+    //dvm($path);
+    //dvm($item['router_path']);
+  }
+  else {
+    $item['link_path'] = $tp . $tid;
+    $item['router_path'] = $tr;
+    if ($ttm['show_term_descendants']) {
+      $depth = ($ttm['depth'] == 0) ? MENU_MAX_DEPTH : $ttm['depth'];
+      //dpm('term descendants too!');
+      $b = new TTMBranch();
+      $b->set($ttm['vid'], $tid);
+      //dvm($depth);
+      //dvm($item['link']['depth']);
+      //dpm($depth - $item['link']['depth'] + 1);
+      //dpm($b->descendantTids($depth - $item['link']['depth'] + 1));
+      //dpm($item['link']['link_title']);
+      $dts = $b->descendantTids($depth - $item['link']['depth'] + 1);
+      if (!empty($dts)) {
+        $item['link_path'] .= '+' . implode('+', $dts);
+      }
+    }
+  }
+}
+
+/**
+ *
+ * @param  $menu_name
+ * @param  $b
+ * @param  $link_ops_to_default
+ * @return mlid
+ */
+function taxonomy_treemenu_linktreeroot_updatesave($menu_name, $b, $link_ops_to_default = FALSE) {
+  //dpm('ttm rootlink updatesave:');
+  $item = array();
+
+  // Taxonomy data
+  $data = $b->getDisplayData();
+  $item['link_title'] = $data['name'];
+  $item['weight'] = $data['weight'];
+  $item['link_path'] = 'taxonomy/term/' . $b->tid;
+  $item['router_path'] = 'taxonomy/term/%';
+  $item['options'] = serialize(array());
+  $item['customized'] = 0;
+
+  // Existing link? Recover the data. By lineage, these must be unique,
+  //  even in multiple parent menus.
+  $l = $b->asRootLineage();
+  //dpm($l);
+  $result = db_query("SELECT mlid, options, customized
+        FROM {menu_links}
+        WHERE tlineage = '%s' AND menu_name = '%s' AND module = '%s'",
+        $l, $menu_name, 'treemenu');
+  $existing_item =  db_fetch_array($result);
+  //dvm($existing_item);
+
+  if ($existing_item && !$link_ops_to_default) {
+      $item['options'] = $existing_item['options'];
+      $item['customized'] = $existing_item['customized'];
+  }
+
+  if (!$existing_item) {
+    //dpm('insert');
+    db_query("INSERT INTO {menu_links} (
+      menu_name, plid, link_path, router_path,
+      expanded, weight, depth,
+      module, link_title, options, tlineage
+      ) VALUES (
+      '%s', %d,'%s','%s',
+       %d, %d, %d,
+      '%s', '%s', '%s', '%s'
+      )",
+       $menu_name, 0, $item['link_path'], $item['router_path'],
+       1, $item['weight'], 1,
+       'treemenu', $item['link_title'], $item['options'], $l
+      );
+
+    $mlid = db_last_insert_id('menu_links', 'mlid');
+    // Set the parent field.
+    db_query("UPDATE {menu_links} SET p1=%d WHERE mlid = %d", $mlid, $mlid);
+  }
+  else {
+    //dpm('update');
+    db_query("UPDATE {menu_links} SET
+      plid = %d, link_path = '%s', router_path = '%s',
+      expanded = %d, weight = %d, depth = %d,
+      p1 = %d, p2 = %d, p3 = %d, p4 = %d, p5 = %d, p6 = %d, p7 = %d, p8 = %d, p9 = %d,
+      link_title = '%s',
+      options = '%s', customized = %d, tlineage = '%s'
+      WHERE mlid = %d",
+      0, $item['link_path'], $item['router_path'],
+      1, $item['weight'],  1,
+      $existing_item['mlid'], 0, 0, 0, 0, 0, 0, 0, 0,
+      $item['link_title'],
+      $item['options'], $item['customized'], $l,
+      $existing_item['mlid']);
+
+    $mlid = $existing_item['mlid'];
+  }
+  return $mlid;
+}
+
+
+function taxonomy_treemenu_linktreeroots_updatesave($menu_name, $link_ops_to_default = FALSE) {
+  //dpm('root update save');
+  $mlids = array();
+  $b = new TTMBranch;
+  $b->setFromTTMenu($menu_name);
+  //$b->displayBranch();
+
+  //dvm($b->vid);
+  // Language needs 'off' as they're all the same, but multilingual return default children.
+  $rtids = $b->childTids(module_exists('i18ntaxonomy') && ((i18ntaxonomy_vocabulary($b->vid) == I18N_TAXONOMY_LANGUAGE)) ? 'off' : 'default');
+  //dpm('rtids');
+  //dvm($rtids);
+  foreach ($rtids as $rtid) {
+    $b->tid = $rtid;
+    $mlids[] = taxonomy_treemenu_linktreeroot_updatesave($menu_name, $b, $link_ops_to_default);
+  }
+  return $mlids;
+}
+
+/**
+ * Update the children of a menu link that's being moved.
+ *
+ * The menu name, parents (p1 - p6), and depth are updated for all children of
+ * the link, and the has_children status of the previous parent is updated.
+ */
+//TOCONSIDER: May be improved now root link abondoned?
+function _taxonomy_treemenu_link_move_children($new_item, $existing_item) {
+  //dpm('ttm link move children');
+  $i = 1;
+  while ($i <= $existing_item['depth']) {
+    $p = 'p'. $i++;
+    $ph[] = "$p = %d";
+    $args[] =  $existing_item[$p];
+  }
+  //$where[] = "menu_name = '%s'";
+  //$args[] = $existing_item['menu_name'];
+
+  $result = db_query('SELECT mlid, depth, tlineage, p1,p2,p3,p4,p5,p6,p7,p8,p9 
+                      FROM {menu_links}
+                      WHERE '. implode(' AND ', $ph), $args);
+  //dpm('SELECT * FROM {menu_links} WHERE '. implode(' AND ', $ph));
+  //dpm('links searched for args');
+  //dpm($args);
+
+
+  // Useful info
+  //$shift = $existing_item['depth'] - $new_item['depth'] + 1;
+  $redundant_len = strlen($existing_item['tlineage']);
+
+  $i = 1;
+  while ($i <= $new_item['depth']) {
+    $p = 'p'. $i++;
+    $new_item_set[] = "$p = %d";
+    $new_item_args[] =  $new_item[$p];
+  }
+  $base_count = $new_item['depth'] + 1;
+  //dpm('base count');
+  //dpm($base_count);
+  //dvm($new_item_set);
+  while ($item = db_fetch_array($result)) {
+    //dpm('got child item for moving');
+    //dpm($item['mlid']);
+    $set  = $new_item_set;
+    $args = $new_item_args;
+    $j = $base_count;
+      for ($k = $existing_item['depth'] + 1; $k <= $item['depth']; $k++) {
+        $p = 'p'. ($j++);
+        $set[]  = "$p = %d";
+        $args[] = $item['p'.$k];
+      }
+      // Depth
+      $args[] = $j-1;
+      //dpm('depth');
+      //dpm($j-1);
+      while ($j <= MENU_MAX_DEPTH) {
+        $set[] = 'p'. $j++ .' = 0';
+      }
+//dpm('item lineage:');
+//dpm($item['tlineage']);
+//dpm($redundant_len);
+//dpm($new_item['tlineage']);
+    $args[] = $new_item['tlineage'] . substr($item['tlineage'], $redundant_len);
+    $args[] = $item['mlid'];
+    //db_query('UPDATE {menu_links} SET p1 =%d, p2 =%d, p3 = %d, p4 = %d, p5 = %d, p6  =%d, p7 =%d, p8 = %d, p9 = %d, depth = %d, link_path = "%s" WHERE mlid = %d', $args);
+    db_query('UPDATE {menu_links} SET  '. implode(', ', $set) .', depth = %d, tlineage = "%s"
+              WHERE mlid = %d', $args);
+    //dpm('UPDATE {menu_links} SET '. implode(', ', $set) .', depth = %d, link_path = "%s" WHERE mlid = %d');
+    //dpm($args);
+  }
+  /*
+  $args[] = $item['menu_name'];
+  $set[] = "menu_name = '%s'";
+
+  $i = 1;
+  while ($i <= $item['depth']) {
+    $p = 'p'. $i++;
+    $set[] = "$p = %d";
+    $args[] = $item[$p];
+  }
+  $j = $existing_item['depth'] + 1;
+  while ($i <= MENU_MAX_DEPTH && $j <= MENU_MAX_DEPTH) {
+    $set[] = 'p'. $i++ .' = p'. $j++;
+  }
+  while ($i <= MENU_MAX_DEPTH) {
+    $set[] = 'p'. $i++ .' = 0';
+  }
+
+  $shift = $item['depth'] - $existing_item['depth'];
+  if ($shift < 0) {
+    $args[] = -$shift;
+    $set[] = 'depth = depth - %d';
+  }
+  elseif ($shift > 0) {
+    // The order of $set must be reversed so the new values don't overwrite the
+    // old ones before they can be used because "Single-table UPDATE
+    // assignments are generally evaluated from left to right"
+    // see: http://dev.mysql.com/doc/refman/5.0/en/update.html
+    $set = array_reverse($set);
+    $args = array_reverse($args);
+
+    $args[] = $shift;
+    $set[] = 'depth = depth + %d';
+  }
+  $where[] = "menu_name = '%s'";
+  $args[] = $existing_item['menu_name'];
+  $p = 'p1';
+  for ($i = 1; $i <= MENU_MAX_DEPTH && $existing_item[$p]; $p = 'p'. ++$i) {
+    $where[] = "$p = %d";
+    $args[] = $existing_item[$p];
+  }
+
+  db_query("UPDATE {menu_links} SET ". implode(', ', $set) ." WHERE ". implode(' AND ', $where), $args);
+  // Check the has_children status of the parent, while excluding this item.
+  _menu_update_parental_status($existing_item, TRUE);
+
+   */
+  _menu_update_parental_status($existing_item, TRUE);
+}
+
+/**
+ * Save a treemenu link.
+ * A brutal function. It doesn't check for existance, you have to do that
+ * beforehand. It just loads info into what you supply. It can't handle menu
+ * roots, either, as it scrounges its data from the mlid of plid.
+ *
+ * See the wrapper _taxonomy_treemenu_updatesave_linkroot_raw().
+ *
+ * You must supply a tid.
+ *
+ * If an mlid is supplied it recovers the present data.
+ *
+ * If there is no mlid (or mlid is NULL etc.), it will create a new link.
+ * If there is no mlid you must supply a plid.
+ *
+ * If there is an mlid, the plid is optional. Without it, the function
+ * assumes no parentage is changing. If there is a plid, the parentage
+ * is moved to the supplied plid and the path updated.
+ *
+ * This function is, however and unhappily, necessary. menu_link_save() makes
+ * certain sensible assumptions, and is hard to coax into certain actions,
+ * such as preserving old link data. There are several tweaks here, some
+ * specific to taxonomy treemenu such as auto path building, but some
+ * quite general, such as optional overwriting of data.
+ *
+ * This function does not need/use these fields,
+ * - module (is set to 'treemenu')
+ * - router_path (is set to 'ttprnts/%')
+ * - external (uses system default)
+ * - updated (uses system default)
+ * and if the parameters are usefully supplied, it does not need,
+ * - menu_name (recovered from mlid or plid data)
+ * - plid (either recovered or passed in)
+ * - link_path (either recovered or newly generated)
+ * - has_children (recovered. If you reparent and move children, is preserved, othewise defaulted)
+ * - depth (either recovered or newly generated)
+ * - px items (either recovered or newly generated)
+ * derived from the tid via taxonomy data load
+ * - link_title
+ * - weight
+ * from the original, defaulted or overwritten with defaults
+ * - hidden
+ * - expanded
+ * - options
+ * - customized
+ *
+ * Put it another way. You have to handle the parameters.
+ *
+ * @param <type> $tid
+ * @param <type> $mlid
+ *   Id of existing menu item. If the parameter is present, the item will be moved
+ * or updated in some way. If not, you get a new item.
+ * @param <type> $plid
+ *   Optional in the circumstance that you have an existing item
+ *     and it is not being moved. Course, plid can be valid if 0 - a menu root.
+ *     So you have to explicity pass NULL.
+ * @param <type> $move_children
+ *   If a link is reparented, do children follow?
+ * @param <type> $set_to_default
+ *   Set display options hidden/expanded/options/customized to default.
+ * @return mlid of the created/updated link.
+ */
+function _taxonomy_treemenu_link_updatesave_raw($tid, $mlid = 0, $plid = NULL, $move_children = FALSE, $set_to_default = FALSE) {
+    //dpm('ttm updatesave link raw');
+    $item = array();
+    $item['module'] = 'treemenu';
+    $item['router_path'] = 'taxonomy/term/%';
+    $item['link_path'] =  'taxonomy/term/' . $tid;
+
+    if (($plid === NULL) && !$mlid) {
+      dpm('We had no parent and no mlid. Abandon ship!');
+      $set_to_default = TRUE;
+
+      return 0;
+    }
+
+    // Existing item data
+    if ($mlid) {
+      // JavaBeans can't do heredocs. Interesting and painful.
+      // Coders: bear in mind you may need some of this for _menu_link_move_children()
+      $existing_item = db_fetch_array(db_query("
+        SELECT menu_name, plid,
+            hidden, has_children,
+            expanded, depth,
+            p1, p2, p3, p4, p5, p6, p7, p8, p9,
+            options,
+            customized, tlineage
+        FROM {menu_links} WHERE mlid = %d", $mlid));
+
+        // The following will be altered if we reparent.
+        // So we put the values in the line of fire.
+        //$item['tlineage'] = $existing_item['tlineage'];
+        //$item['plid'] = $existing_item['plid'];
+    }
+
+    if (!$mlid || $set_to_default) {
+      $item['hidden'] = 0;
+      $item['expanded'] = 0;
+      $item['options'] = serialize(array());
+      $item['customized'] = 0;
+    }
+
+    // Parentage
+    if ($plid !== NULL) {
+      // Parentage new or changing.
+      //dpm('parenting...');
+      if ($plid === 0) {
+        // Some setting which jiggle the later calls.
+        $parent['depth'] = 0;
+        $parent['menu_name'] = $existing_item['menu_name'];
+        $b = new TTMBranch;
+        $b->setFromLineage($existing_item['tlineage']);
+        $item['tlineage'] = $b->asRootLineage();
+       }
+      else {
+        $parent = db_fetch_array(db_query("SELECT depth, menu_name,
+            p1, p2, p3, p4, p5, p6, p7, p8, p9, tlineage
+            FROM {menu_links} WHERE mlid = %d", $plid));
+        $item['tlineage'] = $parent['tlineage'] . $tid . '/';
+      }
+
+      // Check and set the depth
+      if ($parent['depth'] > MENU_MAX_DEPTH - 1) {
+        return FALSE;
+      }
+      $item['depth'] = $parent['depth'] + 1;
+
+      // And other data fields relating to the parent.
+      $item['plid'] = $plid;
+      $item['menu_name'] = $parent['menu_name'];
+
+     // Has children.
+     // If there's an mlid and we move children, the item knows. Otherwise, zero.
+      if (!($mlid && $move_children)) {
+           $item['has_children'] = 0;
+      }
+    }
+
+    // Taxonomy data
+    $term = taxonomy_treemenu_get_term($tid);
+    $item['link_title'] = $term['name'];
+    $item['weight'] = $term['weight'];
+
+    if (!$mlid) {
+      db_query("INSERT INTO {menu_links} (
+        menu_name, plid, link_path, router_path,
+        hidden, has_children,
+        expanded, weight, depth,
+        module, link_title, options,
+        customized, tlineage) VALUES (
+        '%s', %d, '%s', '%s',
+        %d, %d,
+        %d, %d, %d,
+       '%s', '%s', '%s',
+        %d, '%s')",
+        $item['menu_name'], $item['plid'], $item['link_path'], $item['router_path'],
+        $item['hidden'], $item['has_children'],
+        $item['expanded'], $item['weight'],  $item['depth'],
+        $item['module'],  $item['link_title'], $item['options'],
+        $item['customized'], $item['tlineage']);
+        $item['mlid'] = db_last_insert_id('menu_links', 'mlid');
+        //dpm('ttm link raw - creating new item');
+        //dpm($item['mlid']);
+    }
+    else {
+      //dpm('updating a known link');
+      $item = array_merge($existing_item, $item);
+
+      db_query("UPDATE {menu_links} SET
+        menu_name = '%s', plid = %d, link_path = '%s', router_path = '%s',
+        hidden = %d, has_children = %d,
+        expanded = %d, weight = %d, depth = %d,
+        module = '%s', link_title = '%s', options = '%s',
+        customized = %d, tlineage = '%s' WHERE mlid = %d",
+        $item['menu_name'], $item['plid'], $item['link_path'], $item['router_path'],
+        $item['hidden'], $item['has_children'],
+        $item['expanded'], $item['weight'],  $item['depth'],
+        $item['module'],  $item['link_title'], $item['options'],
+        $item['customized'], $item['tlineage'], $mlid);
+        $item['mlid'] = $mlid;
+    }
+
+
+    if ($plid !== NULL) {
+
+      // New link or not, if we re-parent we need to set the parent fields.
+      _menu_link_parents_set($item, $parent);
+      db_query("UPDATE {menu_links} SET
+        p1 = %d, p2 = %d, p3 = %d, p4 = %d, p5 = %d, p6 = %d, p7 = %d, p8 = %d, p9 = %d
+        WHERE mlid = %d",
+        $item['p1'], $item['p2'], $item['p3'], $item['p4'], $item['p5'], $item['p6'], $item['p7'], $item['p8'], $item['p9'],
+        $item['mlid']);
+
+      // If there was an item, and we need the children to move, move them.
+      if ($mlid && $move_children) {
+        //dpm('move children - item then existing item');
+        //dpm($item['tlineage']);
+          //dpm($existing_item['tlineage']);
+        //dpm($existing_item);
+        // This checks the parent status of wherever the link is moved from.
+        _taxonomy_treemenu_link_move_children($item, $existing_item);
+        //_menu_link_move_children($item, $existing_item);
+      }
+
+      // Set the parent's flag for children. Only if we must.
+      //dpm('Set the parent?');
+      //dvm(!$move_children);
+      //dpm($plid);
+      //if (!$existing_item['has_children']) {
+      if ($plid != 0) {
+        db_query("UPDATE {menu_links} SET has_children = 1 WHERE mlid = %d",  $plid);
+      }
+    }
+
+    return $item['mlid'];
+}
+
+/**
+ * Saves/updates all treemenu links when a taxonomy term is updated.
+ *
+ * @param object $term_info
+ *     From hook_taxonomy, includes new parent data.
+ * @return boolean On sucess or failure of function.
+ */
+function taxonomy_treemenu_term_links_update($term_info) {
+  //dpm('ttm update term links:');
+  //dpm($term_info);
+  $existing_items = array();
+  $changed_parents = array();
+  $reusable_bin = array();
+  $unused_mlids = array();
+  $existing_parents = array();
+  $changed_links = array();
+
+  // Assert $term_info['parent'], as an array, as it can be a lone item.
+  $new_parents = array();
+  if (is_array($term_info['parent'])) {
+    $new_parents = $term_info['parent'];
+  }
+  else {
+    $new_parents = array( (int) $term_info['parent']);
+  }
+  //dpm('new_parents');
+  //dvm($new_parents);
+
+  if (empty($new_parents)){
+    drupal_set_message(t('No parents in function taxonomy_treemenu_update_term_links(). Please report the circumstances.'), 'warning');
+    return FALSE;
+  }
+
+  // Across treemenus, we need any existing term items and the mlids. They all
+  // need considering.
+  // Matching old links to new links is nigh on impossible
+  // as the lineage may change, and the menu may have gained/declined multiple status.
+  // But we do know all links of this term are available to be used.
+  // Later on, we'll pop them and save new data into the now redundant framework.
+  $result = db_query("SELECT menu_name, mlid, tlineage FROM {menu_links} 
+                      WHERE tlineage LIKE '%d:%/%d/' AND module = '%s'",
+                      $term_info['vid'], $term_info['tid'], 'treemenu');
+  // SELECT menu_name, mlid, tlineage FROM {menu_links}  WHERE tlineage LIKE '6:/%/69/';
+
+  while ($existing_item = db_fetch_array($result)) {
+    $existing_items[] = $existing_item;
+    $changed_links[] = $existing_item['menu_name'];
+  }
+  //dpm('existing items');
+  //dpm($existing_items);
+
+  // Now, hook_taxonomy() will throw a hook for a internal data (weight/title etc.) change.
+  // We'd rather these updates didn't reach any link save function because,
+  // - they are hefty functions (even if we use our own function)
+  // - there's a lot of these hooks. Many taxonomy changes introduce re-weighing.
+  // - if we used menu_link_save(), it can add unwanted side changes, like resetting 'has_children'.
+  // So we catch internal changes here (hook_taxonomy's 'description' info is silently dropped).
+  // These changes are menu agnostic.
+  // TOCONSIDER: This section is quite complex and maybe would be faster without,
+  // (it's not necessary). Needs profiling!
+  foreach ($new_parents as $parent) {
+   //dvm($parent);
+    // Catch the case where a parent is listed as 0 (i.e. is the vocabulary)
+    //$search = (($parent) ? '/' . $parent : $term_info['vid']) . '/' . $term_info['tid'];
+    $s_parent =  ($parent) ? $parent : $term_info['vid'];
+    //dvm($search);
+    $parent_link_exists = FALSE;
+    foreach ($existing_items as &$item) {
+        //dpm('link data of existng item');
+        //dpm($item);
+        //if (strpos($item['tlineage'], $search) !== false) {
+      $voc_str = $term_info['vid'] . ':';
+      $parented_str = (($parent) ? '/' . $parent : $voc_str) . '/'. $term_info['tid'] . '/';
+      $search = true;
+      $search = ($search && (strpos($item['tlineage'], $voc_str) !== false));
+      $search = ($search && (strrpos($item['tlineage'], $parented_str) !== false));
+        //$bits = explode('/', $item['tlineage']);
+        //$count = count($bits);
+        // if ($bits[$count-1] == $term_info['tid'] && $bits[0] == $term_info['vid'] && $bits[$count-2] == $s_parent ) {
+      if ($search) {
+         //dpm('internal change');
+
+          // Update the item data. Note that term weights are not link weights!
+          // But they work ok.
+          db_query("UPDATE {menu_links} SET
+                link_title = '%s', weight = %d WHERE mlid = %d",
+                $term_info['name'],  $term_info['weight'], $item['mlid']);
+          // Falsify the value so we can remove this item later.
+          $item = FALSE;
+          //$updated_mlids[] = $item['mlid'];
+          $parent_link_exists = TRUE;
+        }
+    }
+    if (!$parent_link_exists) $changed_parents[] = $parent;
+  }
+
+  //dpm('existing items 2');
+  //dpm($existing_items);
+
+
+  // Construct an array keyed by menu_name. Also filter for mlids
+  // which are reusable, as they were not simply updated.
+  // array_walk() has a bizzare non-functionality, and this is a workround, see,
+  // http://uk3.php.net/manual/en/function.array-walk.php
+  // http://bugs.php.net/bug.php?id=19699%C2%A0%C2%A0
+  array_walk($existing_items, create_function('$v, $k, &$bin', 'if($v) $bin[0][$v["menu_name"]][] = $v["mlid"];'), array(&$reusable_bin));
+  //dpm('resuable_bin');
+  //dpm($reusable_bin);
+
+  //dpm('changed parents: ');
+  //dvm($changed_parents);
+
+  // Check if there is anything to do now, at all.
+  // array_walk() has a bizzare non-functionality, and this is a workround, see,
+  // http://uk3.php.net/manual/en/function.array-walk.php
+  // http://bugs.php.net/bug.php?id=19699%C2%A0%C2%A0
+  if (empty($changed_parents)) {
+    // Check if the user has been deleting parents.
+    foreach ($reusable_bin as $menu_bin) {
+      if (!empty($menu_bin)) array_walk($menu_bin, create_function('$v, $k, &$u', '$u[0][] = $v;'), array(&$unused_mlids));
+    }
+    if (count($unused_mlids)) {
+      taxonomy_treemenu_linktree_delete($unused_mlids);
+    }
+
+    $changed_links = array_unique($changed_links);
+    if (!empty($changed_links)) {
+      //dpm('modify links');
+      foreach($changed_links as $altered_menu) {
+        taxonomy_treemenu_term_links_modify(taxonomy_treemenu_load($altered_menu));
+      }
+    }
+    menu_cache_clear_all();
+    _menu_clear_page_cache();
+    return TRUE;
+  }
+
+
+
+  //Now we can reparent links and fill them with new data.
+  // First, find links for any parent tids in treemenus.
+  // A nested placeholder with wildcards makes this difficult to secure
+  // using usual Drupal methods.
+  // We won't find any parent 0 (vocabulary), but that's ok, tid can't be zero.
+  $path_root = "tlineage LIKE '". $term_info['vid'] . ':';
+  foreach ($changed_parents as $parent) {
+
+   // if ($parent == 0) {
+   //   $parent_searches[] = $path_root . "'";
+   // }
+   // else {
+      // Wildcard the centre.
+      $parent_searches[] = $path_root .'%/' . $parent. "/'";
+    //}
+  } 
+  $placeholder = implode(' OR ', $parent_searches);
+  //dpm($placeholder);
+  $result = db_query("SELECT menu_name, mlid, link_path, depth FROM {menu_links} WHERE (". $placeholder .") AND module = '%s'", 'treemenu');
+  while ($parent_item = db_fetch_array($result)) {
+        $existing_parents[] = $parent_item;
+  }
+
+  // The previous block of code ignored one possibility, that the term has
+  // been moved to a menu root. Note that a term moved to a vocab will always
+  // show as a root if it appears in a treemenu, which is why we can ignore it
+  // there and deal with them here. If we find this is so, we put a shell of an
+  // item into the target list, to trigger the following block.
+   $roots = TTMData::rootDataAll();
+   foreach ($roots as $root) {
+     foreach ($changed_parents as $parent) {
+       if ($root['tid'] == $parent && $root['vid'] == $term_info['vid']) {
+         //dpm('found a command to reparent to a menu root');
+         //dvm($root);
+          $b = new TTMBranch;
+          $b->set($root['vid'], $term_info['tid']);
+          $existing_parents[] = array('mlid' => 0, 'branch' => $b, 'menu_name'=> $root['menu_name']);
+       }
+     }
+   }
+  // TODO: If you can find a nicer way, contribute!
+
+
+  //while ($parent_item = db_fetch_array($result)) {
+  foreach ($existing_parents as $parent_item) {
+    // Get an existing item, if there is one, for filling with new data.
+    $reusable_mlid = (!empty($reusable_bin[$parent_item['menu_name']])) ? array_pop($reusable_bin[$parent_item['menu_name']]) : NULL;
+    $changed_links[] = $parent_item['menu_name'];
+    if ($reusable_mlid) {
+        // This ought to be simple. It's a case of reparenting the link, and
+        // dragging all the sublinks with it (reflecting what happens in the taxonomy).
+        // This should handle a plid of 0.
+        //dpm('there is a reusable item');
+        //dpm($reusable_mlid);
+        _taxonomy_treemenu_link_updatesave_raw($term_info['tid'], $reusable_mlid, $parent_item['mlid'], TRUE, TRUE);
+    }
+    else {
+        // If the parent moved only, we should have the right number of spare links.
+        // It appears the user has been adding new parents to the term (or the tree
+        // is corrupt, or no menu items from the correct menu, but that makes
+        // little practical difference). We need new links.
+        //dpm('there is no reusable item - parents added?');
+        // We also need to catch also a root link, i.e. $parent_item['mlid'] = 0
+        if ($parent_item['mlid'] == 0) {
+
+          $mlid = taxonomy_treemenu_linktreeroot_updatesave($parent_item['menu_name'], $parent_item['branch']);
+        }
+        else {
+          $mlid = _taxonomy_treemenu_link_updatesave_raw($term_info['tid'], NULL, $parent_item['mlid']);
+        }
+        // ...and we need to grow a tree of any children.
+        taxonomy_treemenu_linktree_partial_create($mlid);
+    }
+
+  }
+
+  // array_walk() has a bizzare non-functionality, and this is a workround, see,
+  // http://uk3.php.net/manual/en/function.array-walk.php
+  // http://bugs.php.net/bug.php?id=19699%C2%A0%C2%A0
+  foreach ($reusable_bin as $menu_bin) {
+    if (!empty($menu_bin)) array_walk($menu_bin, create_function('$v, $k, $u', '$u[0][] = $v;'), array(&$unused_mlids));
+  }
+  //dpm('tail delete');
+  //dpm($reusable_bin );
+  //dpm($unused_mlids);
+  if (count($unused_mlids)) {
+    //dpm('There were links left over!');
+    taxonomy_treemenu_linktree_delete($unused_mlids);
+  }
+  $changed_links = array_unique($changed_links);
+  if (!empty($changed_links)) {
+    //dpm('modify links');
+    foreach($changed_links as $altered_menu) {
+      taxonomy_treemenu_term_links_modify(taxonomy_treemenu_load($altered_menu));
+    }
+  }
+  menu_cache_clear_all();
+  _menu_clear_page_cache();
+  return TRUE;
+}
+
+
+
+
+
+/**
+ * Delete trees by term parentage in a treemenu.
+ * Don't be fooled by the fact it takes mlids. It finds the treemenu lineage from
+ * inside the mlid, then trashes all similar terms with similar parentage,
+ * heedless of menu name, and all sublinks also. So it's fairly wild, and mainly
+ * intended for taxonomy changes.
+ *
+ * Should be followed by general cache clearances.
+ *
+ * @param array $mlids
+ */
+
+ // TODO: menu_link_delete() to do the grunt work?
+function taxonomy_treemenu_linktree_delete($mlids) {
+  //dpm('tt delete tree:');
+  $paths = array();
+  $plids = array();
+  $placeholders = db_placeholders($mlids);
+  $result = db_query("SELECT tlineage FROM {menu_links} WHERE mlid IN (" . $placeholders . ") AND module = 'treemenu'", $mlids);
+  while ($item = db_fetch_array($result)) {
+    $paths[] = $item['tlineage'];
+  }
+  $paths = array_unique($paths);
+  //dpm($paths);
+  // Get the end two elements from the path
+  foreach ($paths as &$path) {
+    $path = "tlineage LIKE '" . $path . "%'";
+  }
+
+  
+  $where = implode(' OR ', $paths);
+  //dpm($where);
+
+  // Get the plids.
+  $result = db_query("SELECT plid FROM {menu_links} WHERE " . $where . " AND module = 'treemenu'");
+  while ($item = db_fetch_array($result)) {
+    $plids[] = $item['plid'];
+  }
+
+  // Trash the links.
+  db_query("DELETE FROM {menu_links} WHERE " . $where . " AND module = 'treemenu'");
+
+  // Update the has_children status of the parent.
+  $placeholders = db_placeholders($plids);
+  db_query("UPDATE {menu_links} SET has_children = 0 WHERE mlid IN (" . $placeholders . ") AND module = 'treemenu'", $plids);
+}
+
+
+function taxonomy_treemenu_linktree_partial_create($mlid, $link_ops_to_default = FALSE, $i18n_selection_mode = FALSE) {
+  //dpm('tt build2');
+  $parent_stack = array(0);
+  $mlid_store = array();
+
+  // Get data from the mlid item.
+  $result = db_query("SELECT tlineage, menu_name, depth FROM {menu_links} where mlid = %d", $mlid);
+
+  $root_item = db_fetch_array($result);
+
+  // Handle depth.
+  $depth = TTMData::depth($root_item['menu_name']);
+  $depth -= $root_item['depth'];
+
+  // Get the taxonomy tree descending from this branch.
+  // get_tree doesn't build with root, from a vocabulary, anyhow...
+  $b = new TTMBranch;
+  //dpm($root_item['link_path']);
+  $b->setFromLineage($root_item['tlineage']);
+  //$b->displayBranch();
+  
+  // See also TTMChildTids, which handles the menu roots.
+
+/*
+    if (module_exists('i18n')) {
+      dpm('i18n tree lockout');
+      //i18n_selection_mode('custom', "v.language = '". $langcode ."'");
+     $multilang = (i18ntaxonomy_vocabulary($b->vid) == I18N_TAXONOMY_TRANSLATE);
+     if ($multilang) {i18n_selection_mode('default');} else {i18n_selection_mode('off');};
+    }
+    */
+  // LANGUAGE mode needs off, all else should be ok on i18n 'default' mode.
+    if (module_exists('i18ntaxonomy')) i18n_selection_mode(((i18ntaxonomy_vocabulary($b->vid) == I18N_TAXONOMY_LANGUAGE) ? 'off' : 'default'));
+
+
+  $tree = taxonomy_get_tree($b->vid, $b->tid, -1, ($depth == 0) ? NULL : $depth);
+    if (module_exists('i18ntaxonomy')) i18n_selection_mode('reset');
+    /*
+    if (module_exists('i18n')) {
+      //dpm('i18n root unlock');
+      i18n_selection_mode('reset');
+    }
+
+     */
+    /*
+  if (module_exists(i18n)) {
+    //dpm('i18n lockout');
+    i18n_selection_mode('off');
+
+
+    $tree = taxonomy_get_tree($b->vid, $b->tid, -1, ($depth == 0) ? NULL : $depth);
+    i18n_selection_mode('reset');
+  }
+  else {
+    $tree = taxonomy_get_tree($b->vid, $b->tid, -1, ($depth == 0) ? NULL : $depth);
+  }
+  
+     */
+  //dpm($tree);
+
+  // Let's go to work.
+  $parent_stack[] = $mlid_store[] = $mlid;
+  $old_depth = -1;
+  $old_path = $root_item['tlineage'];
+
+  foreach ($tree as $term) {
+    if ($term->depth <= $old_depth) {
+      $slashes_to_remove = $old_depth - $term->depth + 1;
+      for ($i = 0; $i < $slashes_to_remove; $i++) {
+        $old_path = substr($old_path, 0, strrpos($old_path, '/'));
+        array_pop($parent_stack);
+      }
+    }
+    $path       = $old_path .'/'. $term->tid;
+    $old_depth  = $term->depth;
+    $old_path   = $path;
+
+    // Mild check for existing items.
+    // Will double up a db search for existing items with
+    // _taxonomy_treemenu_updatesave_link_raw, but then so
+    // would menu_link_save() (and some).
+    // Note how 'path' becomes, by our naming, 'lineage'.
+    $existing_item = db_fetch_array(db_query("SELECT mlid
+          FROM {menu_links}
+          WHERE tlineage = '%s' AND menu_name = '%s' AND module = '%s'",
+          $path, $root_item['menu_name'], 'treemenu'));
+
+    // Force parentage by including plid. Parentage is a little safer off this
+    // stack, than from existing item. Note that there must always be parents,
+    // root links are handled elsewhere.
+    $mlid = _taxonomy_treemenu_link_updatesave_raw($term->tid, $existing_item['mlid'], end($parent_stack), FALSE, $link_ops_to_default);
+    $parent_stack[] = $mlid_store[] = $mlid;
+  }
+
+  // Sometimes useful - used links.
+  return $mlid_store;
+}
+
+
+function taxonomy_treemenu_linktree_all_createupdate($menu_name, $link_ops_to_default = FALSE) {
+  //dpm('tt linktree createupdate2:');
+  $mlid_store = array();
+
+  $root_mlids = taxonomy_treemenu_linktreeroots_updatesave($menu_name, $link_ops_to_default);
+  foreach ($root_mlids as $rmlid) {
+    $mlid_store = array_merge($mlid_store, taxonomy_treemenu_linktree_partial_create($rmlid, $link_ops_to_default));
+  }
+  // The mlid_store contains all the items we have touched.
+  // If requested (on a rebuild, say, rather than a build) remove all other links.
+  $placeholders = db_placeholders($mlid_store);
+  // As well as supplying the query, this is a nice bundle of information to return.
+  $mlid_store[] = $menu_name;
+  $mlid_store[] = 'treemenu';
+
+  db_query("DELETE FROM {menu_links} WHERE mlid NOT IN (". $placeholders .") AND menu_name = '%s' AND module='%s'", $mlid_store);
+  taxonomy_treemenu_term_links_modify(taxonomy_treemenu_load($menu_name));
+  menu_cache_clear($menu_name);
+  _menu_clear_page_cache();
+  return $mlid_store;
+}
+
+
+/**
+ * Re-build a named treemenu with interface for the user.
+ * 
+ * @param <type> $menu_name
+ * @param <type> $link_ops_to_default
+ *   Ask the link creator to reset the link display options also.
+ * @return boolean, if the menu_name is valid.
+ */
+function taxonomy_treemenu_rebuild($menu_name, $link_ops_to_default) {
+  $tm = array();
+  // Should be display data?
+  $tm = taxonomy_treemenu_load($menu_name, FALSE);
+  $t_args = array('%title' => $menu_name);
+  if (!$tm) {
+    drupal_set_message(t('Attempted to update a treemenu, but the name %title is not listed in the taxonomy_treemenu data.', $t_args), 'warning');
+    return FALSE;
+  }
+  taxonomy_treemenu_linktree_all_createupdate($menu_name, $link_ops_to_default);
+  
+  return TRUE;
+}
+
+
+/*
+Rendering details
+-----------------
+menu_tree($menu_name = 'navigation')
+menu tree adapted to current path. Calls menu_page_data > menu_tree_output on the output
+if tree not hanging round atached to static.
+(skim for now, straight to output)
+
+menu_tree_output $tree
+pulls out hidden items
+(Believe maybe can handle one of our finished trees, no need to rewrite?)
+
+theme_menu_tree
+Used in menu_tree_output
+wraps completed output in ul tags.
+Other stuff done by theme_menu_item.
+
+menu_tree_data $results/parents
+organises data into belows and adds user custom stuff
+(will be wierd as we provide no parents, yet, but may work as is...)
+
+USED in
+menu_all_data
+(needs rewriting...)
+menu_page_data
+*/
+
+
+
+
+
+/**
+ * Find a treemenu item using the menu_name and link_path.
+ *
+ * If (and only if) the path is a treemenu path, the result is unambiguous, as
+ * the path includes the item parents.
+ */
+// Unused. Unsure about the future?
+function taxonomy_treemenu_menu_item($menu_name, $link_path) {
+  $result = db_query("SELECT * FROM {menu_links} WHERE link_path = '%s' AND menu_name = '%s' AND module = '%s'", $link_path, $menu_name, 'treemenu');
+  return $result;
+}
+
+////////////////////
+// Link Renderers //
+////////////////////
+
+ /**
+  * Format an internal treemenu link.
+  *
+  * @param $text
+  * @param $path
+  * @param $options
+  * @param $page_or_term_link
+  *   Treemenu page and term links get treated seperately. Mainly internal parameter.
+  * @param $pt_link_active
+  *   Override for page and term links for the 'active' test.
+  * @return
+  *   HTML of a treemenu link.
+  */
+/*
+function taxonomy_treemenu_l($text, $path, $options = array(), $page_or_term_link = FALSE, $pt_link_active = FALSE) {
+  // Merge in defaults.
+  $options += array(
+      'attributes' => array(),
+      'html' => FALSE,
+    );
+
+  // Append active class.
+  if ((!$page_or_term_link && ($path == $_GET['q'])) || $pt_link_active || ($path == '<front>' && drupal_is_front_page())) {
+    if (isset($options['attributes']['class'])) {
+      $options['attributes']['class'] .= ' active';
+    }
+    else {
+      $options['attributes']['class'] = 'red active';
+    }
+  }
+
+
+  // Remove all HTML and PHP tags from a tooltip. For best performance, we act only
+  // if a quick strpos() pre-check gave a suspicion (because strip_tags() is expensive).
+  if (isset($options['attributes']['title']) && strpos($options['attributes']['title'], '<') !== FALSE) {
+    $options['attributes']['title'] = strip_tags($options['attributes']['title']);
+  }
+  
+  return '<a href="'. check_url(url($path, $options)) .'"'. drupal_attributes($options['attributes']) .'>'. ($options['html'] ? $text : check_plain($text)) .'</a>';
+}
+*/
+
+/**#
+ * Generate the HTML output for a single treemenu link.
+ *
+ * @param $link
+ *   From a menu tree.
+ * @param $url_tid_str
+ *   Used for detecting active items in menus. Of form '/[tid]'.
+ * @return
+ *   HTML of a menu link.
+ * @ingroup themeable
+ */
+//TODO: Redundant?
+/*
+function theme_taxonomy_treemenu_item_link($link, $url_tid_str = "") {
+  if (empty($link['localized_options'])) {
+    $link['localized_options'] = array();
+  }
+
+  // This target_tid info is needed because term and page links need to know they
+  // have the same target (a term). Page links can recognize themselves in the
+  // URL query, but a term link in a block has to know that a page might be
+  // targeting the same term. Also nice for avoiding highlighting two links if
+  // a link is duplicated. So on /term/ links, we look for the tid.
+  $page_or_term_link = ($link['router_path'] == 'taxmenu/%/term/%/%') || ($link['router_path'] == 'taxmenu/%/page/%/%');
+  $pt_link_active = (($link['target_tid_str'] == $url_tid_str) && $page_or_term_link) ;
+
+  return taxonomy_treemenu_l($link['title'], $link['href'], $link['localized_options'], $page_or_term_link, $pt_link_active);
+}
+*/
+
+
+
+///////////////
+// Renderers //
+///////////////
+
+/**
+ * Takes a (tree)menu tree, and renders it,
+ *  handling disabled items,
+ *  and calling the treemenu link themes.
+ *
+ * @param $tree
+ *   A data structure representing the tree as returned from menu_tree_data.
+ * @return
+ *   The rendered HTML of that data structure.
+ */
+//TODO: Now unused?
+/*
+function taxonomy_treemenu_tree_output($tree) {
+  $output = '';
+  $items = array();
+
+  //For tid link activating.
+  $url_tid = $_GET['q'];
+  $url_tag = substr($url_tid, strrpos($url_tid, '/'));
+
+  // Pull out just the menu items we are going to render so that we
+  // get an accurate count for the first/last classes.
+  foreach ($tree as $data) {
+    if (!$data['link']['hidden']) {
+      $items[] = $data;
+    }
+  }
+
+  $num_items = count($items);
+  foreach ($items as $i => $data) {
+    $extra_class = NULL;
+    if ($i == 0) {
+      $extra_class = 'first';
+    }
+    if ($i == $num_items - 1) {
+      $extra_class = 'last';
+    }
+    $link = theme('taxonomy_treemenu_item_link', $data['link'], $url_tag);
+
+    if ($data['below']) {
+      $output .= theme('menu_item', $link, $data['link']['has_children'], taxonomy_treemenu_tree_output($data['below']), $data['link']['in_active_trail'], $extra_class);
+    }
+    else {
+      $output .= theme('menu_item', $link, $data['link']['has_children'], '', $data['link']['in_active_trail'], $extra_class);
+    }
+  }
+  return $output ? theme('menu_tree', $output) : '';
+}
+*/
+
+
+
+function theme_taxonomy_treemenu_root_link($link_title) {
+  return $link_title .= " <span class=\"treemenu-root-link\">(submenu)</span>";
+}
+
+
+/**
+ * Modifies tree links. If a link points to the same branch
+ * as a treemenu base, the link is changed to point straight at the treemenu.
+ *
+ * @param <type> $tree
+ * @param <type> $treemenu_data
+ *   Passed in as it is probably available. Should have the menu data for the
+ *   tree unset(), or it will point links at itself, which is wasteful, if harmless.
+ */
+//TODO: This needs keeping and modifying to V5
+function taxonomy_treemenu_rootpath_mods(&$tree, &$treemenu_data) {
+  //dpm('link root paths:');
+  //dpm($treemenu_data);
+  foreach ($tree as $i => &$data) {      
+    if ($data['link']['router_path'] == 'taxmenu/%/page/%/%') {
+      $link_path = $data['link']['link_path'];
+      $link_tid = substr($link_path, strrpos($link_path, '/') + 1);
+
+      foreach ($treemenu_data as $menu_name => $menu_data) {
+        // A term can only be in one vocab, so we don't need to check vid.
+        if ($link_tid == $menu_data['tid']) {
+           //The link is also a root item from a menu.
+           //dpm('linking...');
+           //dpm($data['link']);
+           $data['link']['title'] = theme('taxonomy_treemenu_root_link', $data['link']['title']);
+           $data['link']['href'] = 'taxmenu/' . $menu_name . '/page/';
+           $data['link']['localized_options']['html'] = TRUE;
+        }
+      } 
+    }  
+
+    if ($data['below']) {
+      taxonomy_treemenu_rootpath_mods($data['below'], $treemenu_data);
+    }
+  }
+}
+
+
+
+/********************************
+Utility funtions for tree modding
+*********************************/
+
+function taxonomy_treemenu_tree_level_lockweight_sink(&$tree_level, $i = 0) {
+  foreach($tree_level as &$item) {
+    $item['link']['weight'] = $i;
+    $i++;
+  }
+}
+
+
+/**
+ * Count descendant nodes from a branch.
+ * If tid = 0 then it's a vocabulary.
+ */
+// TO CONSIDER: Unused. Leave as may be useful later.
+function taxonomy_treemenu_count_descendant_nodes($vid, $tid) {
+  $tids = array();
+  $nodes = array();
+  if ($tid == 0) {
+  //vocab
+    $tids[0] = $tid;
+  }
+  else {
+    $tids[0] = $tid;
+  }
+  $placeholders = db_placeholders($tids, 'int');
+  //We could use taxonomy_select_nodes(), but it's very heavy for our simple needs.
+  //stock 'or' query...
+  $sql = 'SELECT COUNT(DISTINCT(n.nid)) FROM {node} n INNER JOIN {term_node} tn ON n.tid = tn.tid WHERE tn.tid IN ('. $placeholders .') AND n.status = 1';
+  return db_result(db_query(db_rewrite_sql($sql), $tids));
+}
+
+
+/*just a dev utility function */
+function taxonomy_treemenu_dpm_result($result) {
+  while ($item = db_fetch_object($result)) {
+  dpm($item);
+  }
+}
+
+
+
+
+/**
+ * Get descendant nodes of any term.
+ *
+ * @param $tid
+ * If tid = 0 then it's a vocabulary, which will return an empty query.
+ * @param $options
+ *   Unserialized array of treemenu options.
+ * @return a query with critical data.
+ */
+// TODO: Unused?
+/*
+function taxonomy_treemenu_select_descendant_nodes($tid, $options) {
+  //dpm('tt select descendant nodes:');
+  //$sort_option = taxonomy_treemenu_options_get_radios_key($options, 'sort');
+  //dvm($options);
+
+
+  //$order_tag = taxonomy_treemenu_node_sort_query_tag($options['sort']);
+
+  //We could use taxonomy_select_nodes(), but its very heavy for our simple
+  //needs. Now, anyway.
+  //stock 'or' query...
+
+  $sql = 'SELECT DISTINCT(n.nid), n.sticky, n.title, n.created FROM {node} n INNER JOIN {term_node} tn ON n.vid = tn.vid WHERE tn.tid = %d AND n.status = 1 ORDER BY ' . $order_tag;
+  //dpm($sql);
+  return db_query(db_rewrite_sql($sql, 'n', 'nid'), $tid);
+}
+*/
+
+/**
+ *
+ * @param <type> $tid
+ * @param <type> $opts
+ * @return
+ *   A resource identifier pointing to the query results.
+ */
+/**
+ * Find the descendants of a node. Considers treemenu options and language,
+ * and will page.
+ * @param $ttm
+ * @param $tids
+ *   A simple array of tids.
+ * @param $pager
+ * @param $i18n_selection_mode
+ * @return
+ *   Descendant nodes. Currently, sticky/title/created data.
+ */
+function taxonomy_treemenu_select_descendant_nodes2($ttm, $tids, $pager = FALSE) {
+  //dpm('tt select descendant nodes:');
+  //dvm($opts);
+  //dvm($tids);
+  $i18n_selection_mode = (module_exists('i18n')) ?  taxonomy_treemenu_node_trmode_get($ttm) : NULL;
+  $sql = TTMOptsQuery::nodes($ttm, $tids, $i18n_selection_mode);
+
+  //dpm($args);
+  //dvm($sql);
+  if ($pager) {
+    $items_per_page = $ttm['term_as_links'] ? variable_get('default_nodes_taxonomy_treemenu_main', 30) : variable_get('default_nodes_main', 10);
+   // $result = pager_query($sql['query'], variable_get('default_nodes_main', 10), 0, $sql['count'], $sql['args']);
+    $result = pager_query($sql['query'], $items_per_page, 0, $sql['count'], $sql['args']);
+  }
+  else {
+    $result = db_query($sql['query'], $sql['args']);
+    //$result = db_query_range($sql['query'], $args, 0, variable_get('feed_default_items', 10));
+  }
+  //You could node count here, which is efficient...
+  //dvm($pager_total);
+  return $result;
+}
+
+function taxonomy_treemenu_term_descendant_nodes_count($ttm, $tids) {
+  $i18n_selection_mode = (module_exists('i18n')) ?  taxonomy_treemenu_node_trmode_get($ttm) : NULL;
+  $sql = TTMOptsQuery::nodes($ttm, $tids, $i18n_selection_mode);
+  return db_result(db_query($sql['count'], $sql['args']));
+}
+
+
+/**
+ * Duplicate a menu element into a subbranch of a tree.
+ * If the renderer uses a link for expansion, this allows an option to go to the
+ * link itself. DHTML menu has, or had, a similar solution.
+ * This comes after nodetree modes, so must duplicate /path/ urls.
+ * 
+ * @param $branch_element
+ *   A sub-branch from a menu tree.
+ * @param $menu_name
+ *   Needed for link building?
+ */
+
+function taxonomy_treemenu_tree_duplicate_element(&$branch_element) {
+  //dpm('duplicate element:');
+  //dpm($branch_element);
+  $dup_element = array();
+  $dup_element['link'] = $branch_element['link'];
+
+  //Adjust the various elements, which are not quite correct.
+  $dup_element['link']['has_children'] = FALSE;
+  $dup_element['below'] = FALSE;
+  $new_depth = $dup_element['link']['depth'] + 1;
+  $dup_element['link']['depth'] = (string) $new_depth;
+  $dup_element['link']['weight'] = 0;
+  $dup_element['link']['in_active_trail'] = FALSE;
+  $dup_element['link']['duplicate'] = TRUE;
+  if ($branch_element['below']) {
+    // Unshift and the weight element place the item first.
+    array_unshift($branch_element['below'], $dup_element);
+   }
+  else {
+    $branch_element['below'][] = $dup_element;
+  }
+  $branch_element['link']['has_children'] = TRUE;
+  //dpm($branch_element);
+}
+
+
+/** #
+ * Switch on HTML for a tree link.
+ *
+ * @param $link_options
+ *   Serialised options element from a tree link.
+ */
+// May become unused?
+/*
+function taxonomy_treemenu_options_html(&$link_options) {
+  $ops = unserialize($link_options);
+  $ops['html'] = TRUE;
+  $link_options = serialize($ops);
+}
+*/
+
+
+
+
+
+
+function taxonomy_treemenu_tree_self_referenced_modifications(&$tree, $menu_name, $dup_items) {
+  foreach ($tree as &$item) {
+    if ($item['below']) {
+      taxonomy_treemenu_tree_self_referenced_modifications($item['below'], $menu_name, $dup_items);
+    }
+    if (!$item['link']['nid']) {
+      if ($dup_items && $item['link']['in_active_trail']) {
+        taxonomy_treemenu_tree_duplicate_element($item);
+      }
+      $item['link']['link_path']   = 'ttm/' . $item['link']['mlid'] . '/' . $menu_name;
+      $item['link']['router_path'] = 'ttm/%/%';
+    }
+  }
+}
+
+/********************************************************
+* Support functions for modifying taxonomy treemenu trees.
+*********************************************************/
+
+/*******************
+ * Language support
+ *******************/
+
+function taxonomy_treemenu_langcodes_current() {
+  $languages = language_list('language');
+  return array_keys($languages);
+}
+
+//function taxonomy_treemenu_langcode_default() {
+//    $l = language_default();
+//    return $l->language;
+//}
+
+function taxonomy_treemenu_is_multilingual($vid) {
+  return (module_exists('i18ntaxonomy') && (i18ntaxonomy_vocabulary($vid) == I18N_TAXONOMY_TRANSLATE));
+}
+
+function taxonomy_treemenu_vocabulary_langcode_get($vid) {
+  return db_result(db_query("SELECT language FROM vocabulary WHERE vid = %d", $vid));
+}
+
+/* #
+ * //Possibly depreciated, kept for reference.
+
+function taxonomy_treemenu_language($ttm) {
+  global $language;
+  if (!module_exists('i18ntaxonomy')) {
+    return false;
+  }
+  $tr = i18ntaxonomy_vocabulary($ttm['vid']);
+
+  switch ($tr) {
+    case I18N_TAXONOMY_LOCALIZE:
+    case I18N_TAXONOMY_NONE:
+      $lc = false;
+      break;
+    case I18N_TAXONOMY_LANGUAGE:
+      $lc = taxonomy_treemenu_vocabulary_langcode_get($vid);
+      break;
+    case I18N_TAXONOMY_TRANSLATE:
+      {
+          switch ($ttm['translation_mode']) {
+          case 1:
+            //dpm($ttm['translation_mode']);
+            $lc = $ttm['language'];
+            break;
+          case 2:
+            $lc = $language->language;
+            break;
+          default:
+           $lc = false;
+          }
+      }
+      break;
+     default:
+       $lc = false;
+  }
+  return $lc;
+  //return (($tr == I18N_TAXONOMY_LOCALIZE) || ($tr == I18N_TAXONOMY_NONE) || (($tr == I18N_TAXONOMY_TRANSLATE) && !$ttm['translation_mode']));
+}
+*/
+
+/*
+ * The following seems quite ugly. But this is probably the way to do it,
+ * and we do need a custom setup.
+ */
+
+/**
+ * Get the node selection mode for any treemenu.
+ * Should be protected with module_exists('i18n').
+ * @global <type> $language
+ * @param <type> $ttm
+ * @return
+ *   The selection mode. Two of these are ttm custom items -
+ * 'custom_vocabulary' and 'custom_ttm'.
+ */
+function taxonomy_treemenu_node_trmode_get($ttm) {
+  //dpm('taxonomy_treemenu_node_trmode_get');
+  $trm = 'default';
+  if (module_exists('i18ntaxonomy')) {
+    $tr = i18ntaxonomy_vocabulary($ttm['vid']);
+    switch ($tr) {
+      case I18N_TAXONOMY_LANGUAGE:
+        $trm = 'custom_vocabulary'; //taxonomy_treemenu_vocabulary_langcode_get($vid);
+        break;
+      case I18N_TAXONOMY_TRANSLATE:
+        {
+            switch ($ttm['translation_mode']) {
+            case 1:
+              //dpm($ttm['translation_mode']);
+              $trm = 'custom_ttm'; //$ttm['language'];
+              break;
+            case 2:
+              $trm = 'mixed';
+              break;
+            }
+        }
+    }
+  }
+  return $trm;
+  //return (($tr == I18N_TAXONOMY_LOCALIZE) || ($tr == I18N_TAXONOMY_NONE) || (($tr == I18N_TAXONOMY_TRANSLATE) && !$ttm['translation_mode']));
+}
+
+function taxonomy_treemenu_i18n_node_selection_mode($ttm, $i18n_selection_mode) {
+  //dpm('ttm node selection mode');
+  $params = NULL;
+  if ($i18n_selection_mode == 'custom_vocabulary') {
+    $i18n_selection_mode = 'custom';
+    $l = taxonomy_treemenu_vocabulary_langcode_get($ttm['vid']);
+    $params ="%alias.language ='$l' OR %alias.language ='' OR %alias.language IS NULL";
+  }
+  elseif ($i18n_selection_mode == 'custom_ttm') {
+    $i18n_selection_mode = 'custom';
+    $l = $ttm['language'];
+    $params ="%alias.language ='$l' OR %alias.language ='' OR %alias.language IS NULL";
+  }
+  //dvm($i18n_selection_mode);
+  //dvm($params);
+  i18n_selection_mode($i18n_selection_mode, $params);
+}
+
+
+/**
+ * Take a tid string and translate to given languages.
+ * If it finds nothing, it still builds a full langcode keyed array,
+ * but substitutes in the supplied tid.
+ * NOT validated.
+ * @param $tid_str
+ *  String of tids, currently accepts '+' separator i.e. 'tid1+tid2+tid3+...'
+ * @param $langcodes
+ * @param $tp
+ *  Root of path of the returned terms, e.g. 'taxonomy/term/[tid]'
+ * @return
+ *  Array of hrefs and titles, keyed by langcodes.
+ */
+// TODO: We db for titles, as tt() doesn't seem to update on terms,
+// though it is both verified, and is likely well cached?
+function taxonomy_treemenu_tid_str_translation_get($tid_str, $langcodes, $tp) {
+  $trs  = array();
+  $tids = array();
+  $separator = '+'; // One day this may need to be more sophisticated.
+  $tids = explode($separator, $tid_str);
+  //dvm($tids);
+  foreach ($langcodes as $langcode) {
+    // Normally you'd use i18ntaxonomy_translation_tids(),
+    // but we don't need to pregmatch for validation,
+    // as the strings are built internally.
+    $translated_tids = array();
+    foreach ($tids as $tid) {
+      if ($translated_tid = i18ntaxonomy_translation_term_tid($tid, $langcode)) {
+        $translated_tids[] = $translated_tid;
+      }
+    }
+    //dvm($translated_tids);
+    // If it translates, ok, if not, bung in the original path.
+    if (count($translated_tids) == count($tids)) {
+      $trs[$langcode]['href'] = $tp . implode($separator, $translated_tids);
+      $trs[$langcode]['title'] = taxonomy_treemenu_term_title($translated_tids[0]);
+    }
+    else {
+      $trs[$langcode]['href'] = $tp . $tid_str;
+      $trs[$langcode]['title'] = taxonomy_treemenu_term_title($tids[0]);
+    }
+  }
+  return $trs;
+}
+
+
+
+
+/************************************
+ * Functions supporting tree building
+ ************************************/
+
+
+/**
+ * Check access and perform other dynamic operations for each link in the tree.
+ */
+/*
+ * Note:
+ * Why do we have to alias these two funtions? Because the originals do a ksort.
+ * This is based on weight then title then mlid, which we do not want. We have
+ * our own sort methods. Also, we need to lock off International access,
+ * as we tamper with it.
+ *
+ * (We could do the sorting here, as it happens, but it's faster, if lacking
+ * PHP flexibility, to sort in the initial database retrieval, then preserve
+ * the order here through the access check and translate.)
+ */
+function taxonomy_treemenu_tree_check_access(&$tree, $node_links = array()) {
+
+  if ($node_links) {
+    //dpm($node_links);
+    // Use db_rewrite_sql to evaluate view access without loading each full node.
+    $nids = array_keys($node_links);
+    $placeholders = '%d'. str_repeat(', %d', count($nids) - 1);
+      // Block any efforts by Internationalization to filter our tree
+      if (module_exists('i18n')) i18n_selection_mode('off');
+
+    $result = db_query(db_rewrite_sql("SELECT n.nid FROM {node} n WHERE n.status = 1 AND n.nid IN (". $placeholders .")"), $nids);
+
+      if (module_exists('i18n')) i18n_selection_mode('reset');
+
+    while ($node = db_fetch_array($result)) {
+      $nid = $node['nid'];
+      //dpm('access');
+      //dpm($node);
+      foreach ($node_links[$nid] as $mlid => $link) {
+        $node_links[$nid][$mlid]['access'] = TRUE;
+      }
+    }
+  }
+  _taxonomy_treemenu_tree_check_access($tree);
+  return;
+}
+
+/**
+ * Recursive helper function for menu_tree_check_access()
+ */
+function _taxonomy_treemenu_tree_check_access(&$tree) {
+  $new_tree = array();
+  foreach ($tree as $key => $v) {
+    $item = &$tree[$key]['link'];
+    _menu_link_translate($item);
+    if ($item['access']) {
+    //if (true) {
+      if ($tree[$key]['below']) {
+        _taxonomy_treemenu_tree_check_access($tree[$key]['below']);
+      }
+      // The weights are made a uniform 5 digits by adding 50000 as an offset.
+      // After _menu_link_translate(), $item['title'] has the localized link title.
+      // Adding the mlid to the end of the index insures that it is unique.
+      //$new_tree[(50000 + $item['weight']) .' '. $item['title'] .' '. $item['mlid']] = $tree[$key];
+      $new_tree[(50000 + $item['weight']) .' '. $item['mlid']] = $tree[$key];
+    }
+  }
+  // Sort siblings in the tree based on the weights and localized titles.
+  ksort($new_tree);
+  $tree = $new_tree;
+}
+
+
+
+/**
+ * Get the toplevel mlid of any taxonomy treemenu.
+ * Treemenus can't use parent 0, as that would return the tree root. This gets
+ * the visible root mlid. Treemenus are grown from a sole branch, so there is
+ * only ever one item with p2 = 0.
+ *
+ * @param <type> $menu_name
+ * @return The root mlid(from parent p1)
+ */
+//TO CONSIDER: I seem to be keeping this because I'm fond of it, or something.
+function taxonomy_treemenu_toplevel_mlid($menu_name) {
+  $mlid = db_result(db_query("SELECT p1 FROM {menu_links} WHERE menu_name = '%s' AND p2 = 0", $menu_name));
+  return $mlid;
+}
+
+/***************
+ * New link mods
+ **************/
+
+function taxonomy_treemenu_tree_item_is_node($item) {
+  return !$item["link"]["tlineage"];
+}
+
+function taxonomy_treemenu_is_expandable($ttm) {
+  if (module_exists('dhtml_menu')) return FALSE;
+  $data = TTMData::isMultiple($ttm['menu_name']);
+  //$data['hierarchy'] = ($data['hierarchy'] == 2);
+  //$data['multiple'] = ($data['hierarchy'] || $data['multiple']);
+  return (!($data['hierarchy'] || ($ttm['nodes'] && $data['multiple'])) && $ttm['expand']);
+}
+
+
+function taxonomy_treemenu_is_expandable_data($ttm, $is_multiple) {
+  // 0=no 2= pages only 3=yes
+  $data = array();
+  $status = 3; //Set all bits on
+
+  if (module_exists('dhtml_menu')) {
+    $status &= 0;
+    $data['because'][] = "prescence of 'DHTML menu' module";
+  }
+
+  if ($data['hierarchy']) {
+    if (!$ttm['mlid_url']) {
+      $status &= 1;
+      $data['because'][] = 'multiple terms with expanded url';
+    }
+    else {
+      $status &= 0;
+      $data['because'][] = 'multiple terms with no expanded url';
+    }
+  }
+
+  if ($ttm['nodes'] && $is_multiple['multiple']) {
+    $status &= 0;
+    $data['because'][] = 'multiple nodes and nodes showing';
+  }
+  //$status &= 0;
+  //dpm($status);
+  switch ($status) {
+    case 3:
+      $s = 'yes';
+      break;
+    case 1:
+      $s = 'on a page only';
+      break;
+    default:
+      $s = 'no';
+  }
+  $data['status'] = $s;
+  return $data;
+}
+
+/**
+ * Within a tree, theme node count data into the 'link_title' and 'node_count'
+ * field, or use it to prune the tree.
+ * Note that if rendered, liunks with counts will need ['options']['html'] set to true.
+ * @param $tree
+ * @param $count_descendants
+ *   Count using descendant nodes also.
+ * @param $hide_empty_links
+ *   Unset tree elements with no node counts, from the leaf back.
+ * @param $html_titles
+ *   Sets the title callback to check_plain (sometimes you might not want to do this)
+ * @return <type>
+ */
+function _taxonomy_treemenu_tree_process_node_counts(&$tree, $count_descendants, $hide_empty_links, $html_titles) {
+  //dpm('node_counts_append');
+  $tnc = 0;
+  foreach ($tree as $key => &$item) {
+    $bnc = 0;
+    // Check the subtree.
+    if ($item['below'] !== FALSE) {
+      $bnc = _taxonomy_treemenu_tree_process_node_counts($item['below'], $count_descendants, $hide_empty_links, $html_titles);
+    }
+    // Treemenu terms have lineage. A relatively easy way of checking.
+    //dpm('trying');
+    if ($item['link']['tlineage']) {
+      /*
+      if (empty($item['below'])) {
+        $node_count = 0;
+      }
+      else {
+        $node_count = count(array_filter($item['below'], taxonomy_treemenu_tree_item_is_node));
+      }
+
+       */
+      $node_count = $item['link']['node_count'];
+      $bnc += $node_count;
+      //dvm($hide_empty_links);
+      if ($hide_empty_links && !$bnc) {
+        //dpm('unset...');
+        //dpm($item['link']['mlid']);
+        unset($tree[$key]);
+        //$tree[$key] = NULL;
+        continue;
+      }
+      $tnc += $bnc;
+      $nc = ($count_descendants) ? $bnc : $node_count;
+      //$nc = ($count_descendants * $tnc) + (!($count_descendants) * $node_count);
+
+      // TO CONSIDER: We have to cover both cases, that the data will
+      // be used later, in a hook or taxonomy_treemenu_tree_counts_concat()
+      // or if the tree is used externally through the Drupal menu calls?
+      //$item['link']['title'] .= ' <span>(' . $nc . ')</span>';
+      $item['link']['node_count'] = ' <span>(' . $nc . ')</span>';
+      //dpm($nc);
+
+      // Change the item callback so it validates the title, but no more.
+      // We'll set the flag, $item['options']['html'], after access.
+      if ($html_titles) {
+        $item['link']['title_callback'] = 'check_plain';
+      }
+
+    }
+  }
+  return $tnc;
+}
+
+
+function taxonomy_treemenu_node_title($nid) {
+  return db_result(db_query('SELECT title FROM node WHERE nid = %d', $nid));
+}
+
+// We've got the node query doing this now...
+// translation_path_get_translations() is the way to do this, but it's a bit of a
+// mess for treemenu.
+/* #
+function taxonomy_treemenu_node_translations_get($nid, $langcode) {
+  static $ttm_ntr = array();
+
+  $node = node_load($nid);
+  $tnid = $node->tnid;
+    if (!empty($tnid) && !isset($ttm_ntr[$tnid][$langcode])) {
+      //dpm('hunting');
+      $ttm_ntr[$tnid] = array();
+      $ntr = db_fetch_array(db_query('SELECT nid, title, language FROM {node} WHERE tnid = %d AND language = "%s"', $tnid, $langcode));
+      $ttm_ntr[$tnid][$langcode] = $ntr;
+      //dvm($ntr);
+    }
+  return $ttm_ntr[$tnid][$langcode];
+}
+*/
+
+
+function _taxonomy_treemenu_tree_append_node_elements(&$item, $ttm, $tid, $item_base_path, $item_route, $reset = FALSE) {
+  //global $language;
+  //dpm("append node items:");
+  //dpm($language->language);
+  // The purpose of putting the mlid into a key is as a simple id.
+  // We dont have an mlid, we're inventing these links, which seems an awkward
+  // problem, until we realise the id doesn't have to be numeric...
+  static $unique_num = 0;
+  if ($reset) {$unique_num = 0; return; };
+  //$langcode = taxonomy_treemenu_language($ttm);
+  //dvm($langcode);
+  // Descendant nodes handles treemenu node links, respecting language needs.
+  $result = taxonomy_treemenu_select_descendant_nodes2($ttm, array($tid), false);
+
+    // Treemenu terms have lineage. A relatively easy way of checking.
+    //dpm('trying');
+    //if ($item['link']['tlineage']) {
+      //}
+
+  $node_element = array();
+  $tree_elements = array();
+
+  $i=0;
+  while ($node_element = db_fetch_array($result)) {
+    // Fake an mlid.
+    $mlid = 'N' . $unique_num++;
+
+    // These items are the crutial ones when it comes to rendering.
+    //   (the others are relevant only to
+    //      menu organisation/customisation, which doesn't really much affect us)
+    $node_element['mlid'] = $mlid;
+    $node_element['link_path'] = $item_base_path . $node_element['nid'];
+    $node_element['router_path'] = $item_route;
+    // TOCONSIDER: Really, we should load the node then use any callback/hooked title.
+    $node_element['link_title'] = $node_element['title'];
+    //$node_element['options'] = serialize(array('language' => $language->language));
+
+    // Give translations a say in the node path, because l() won't do it.
+
+    // See taxonomy_treemenu_tree_modify() for roughly equivalent code for term links.
+    /*
+    if ($langcode) {
+
+        //dpm($langcode);
+        //dpm($node_element['nid']);
+
+      if ($ntr = taxonomy_treemenu_node_translations_get($node_element['nid'], $langcode)) {
+        //dpm($ntr);
+        $node_element['nid'] = $ntr['nid'];
+        $node_element['title'] = $ntr['title'];
+        $node_element['link_path'] = $item_base_path . $ntr['nid'];
+        $node_element['link_title'] = $ntr['title'];
+      }
+
+    }
+    
+     */
+    //if ($node_element['nid'] == 113) dpm($node_element);
+    // Weight is relevant. We want to preseve the link order, which we have
+    // derived via the custom SQL, so we simply ascend the weight.
+    $node_element['weight'] = $i;
+
+    //Stack them up on the heap.
+    $tree_elements[$mlid] = array('link' => $node_element, 'below' => FALSE);
+    $i++;
+  }
+
+  // Add node count, it's for free.
+  $item['link']['node_count'] = $i;
+  if (!empty($tree_elements)) {
+    if ($item['below']) {
+      // Sink the weight of existing links, then append node links.
+      taxonomy_treemenu_tree_level_lockweight_sink($item['below'], $i);
+      $item['below'] = array_merge($tree_elements, $item['below']);
+    }
+    else {
+      //TODO: Redundant?
+      $item['below'] = $tree_elements;
+    }
+    $item['link']['has_children'] = TRUE;
+  }
+}
+
+
+function taxonomy_treemenu_path_models($ttm) {
+  $m = array('np' =>'', 'nr' => '', 'tp' => '', 'tr' =>'');
+
+  if ($ttm['prefix_urls']) {
+      $m['np'] = $m['nr'] = 'ttm';
+      $m['tp'] = $m['tr'] = 'ttm';
+  }
+
+  if ($ttm['menu_urls']) {
+      $tag = '/'. $ttm['menu_name'];
+      $m['np']  .= $tag;
+      $m['tp']  .= $tag;
+      $m['nr'] .= '/%';
+      $m['tr'] .= '/%';
+  }
+
+  if ($m['np']) {
+    $m['np']  .= '/node/';
+    $m['tp']  .= '/term/';
+    $m['nr'] .= '/node/%';
+    $m['tr'] .= '/term/%';
+  }
+  else {
+    // No prefixes, so use stock Drupal paths.
+    $m['np'] .= 'node/';
+    $m['nr'] .= 'node/%';
+    $m['tp'] .= 'taxonomy/term/';
+    $m['tr'] .= 'taxonomy/term/%';
+  }
+  return $m;
+}
+
+
+/**
+ * Rebuild a treemenu's term link data according to current settings.
+ * Should be followed by a cache empy, if used standalone (which you may do,
+ * for efficiency).
+ * @param <type> $ttm
+ */
+// NOTE: the system of localization.
+// Our general approach is to make the menu in no-langauge, then localize,
+//
+// For non-switching menus we retrieve the right menu, then that's it. We switch the
+// callback in the tree builder to make sure term links never get near the string
+// translation system. Well, we try sometimes, but we can't stop other modules
+// using our links so calling t()...
+//
+// For language switching menus, this is similar to the custom links setup in i18nmenu.
+// A set of language options (bit like the language switcher) and titles is built
+// (expensively) into every link. Then the option 'alter' is used to trigger
+// hook_translated_menu_link_alter() (like i18ntaxonomy), where the data is retrieved (simply).
+// This has the disadvantage of somehow escaping all conventional interfaces,
+// but the advantages of consistency with node link rendering, working with extended URLs,
+// working even if other modules do the rendering,  and being light on the hook.
+function taxonomy_treemenu_term_links_modify($ttm) {
+  //dpm('taxonomy_treemenu_term_links_modify');
+  $m = taxonomy_treemenu_path_models($ttm);
+
+// We really don't want to use t() because,
+// - 's slow (ok, tha's poor, slow is also check_plain)
+// - We're stacking up strings that i18n has already put in the database as terms.
+// - Some configurations of Treemenu had the node count in there,
+// So all those veriations on strings are going in,
+// - And we don't use string translation at all.
+// (Tha's more see?)
+// Thingy is, t's has to be dun. See, we gets the router itemsis from stock
+// paths also ours, so's not fixible.
+   //dpm($m);
+  $result = db_query("SELECT mlid, link_title, link_path, router_path, options, tlineage
+    FROM {menu_links}
+    WHERE menu_name = '%s' AND module = 'treemenu'", $ttm['menu_name']);
+  $voc = taxonomy_vocabulary_load($ttm['vid']);
+  //$multilingual = taxonomy_treemenu_is_multilingual($voc->vid);
+  if ($multilingual = taxonomy_treemenu_is_multilingual($voc->vid)) {
+    $langcodes = taxonomy_treemenu_langcodes_current();
+  }
+
+  while ($item = db_fetch_array($result)) {
+    $tid = taxonomy_treemenu_tid_from_lineage($item['tlineage']);
+    taxonomy_treemenu_menu_item_term_paths_and_title($item, $ttm, $voc, $tid, $m['tp'], $m['tr']);
+    //dpm($item);
+    //$item['module'] = 'menu';
+    //dvm($item['language']);
+    //module_invoke('i18nmenu', 'menu_link', $item, NULL);
+
+
+    if ($multilingual) {
+      // That's the basic paths. For multilingual menus we're going to
+      // construct an options list loaded with alternatives.
+        $ops = unserialize($item['options']);
+                 //dvm($ops);
+                 //dvm($ttm['translation_mode']);
+        // For live handling, evoke hook_link_menu_translate().
+        // Quite important, this diddy line.
+        $ops['alter'] = TRUE;
+        // Get the language for the special options field.
+        switch ($ttm['translation_mode']) {
+          case 0:
+            // No translation. Return the default.
+            $l = language_default();
+            $ops['language'] = $l->language;
+            break;
+          case 1:
+            // Chosen language
+            $ops['language'] = $ttm['language'];
+            break;
+          case 2:
+            // case 2 (switchable) will be worked out in the hook.
+            // May be hanging round unaltered, so...
+            unset($ops['language']);
+        }
+        //dpm('multilingual');
+        //dpm($ttm['translation_mode']);
+        //dpm($ops);
+        //dpm($l->language);
+        //$ops['language'] = taxonomy_treemenu_language_get($ttm);
+        $bits = explode('/', $item['link_path']);
+        //dvm($bits);
+        $ops =  array_merge($ops, taxonomy_treemenu_tid_str_translation_get(end($bits), $langcodes, $m['tp']));
+        $item['options'] = serialize($ops);
+      }
+
+    db_query("UPDATE {menu_links}
+      SET link_title = '%s', link_path = '%s', router_path = '%s', options = '%s'
+      WHERE mlid = %d", $item['link_title'], $item['link_path'], $item['router_path'], $item['options'], $item['mlid']);
+  }
+}
+
+
+
+/**
+ * Recurses through a tree, adding node elements and/or count data,
+ *  depending on ttm settings.
+ * Self referenced takes adavnatage of a good point to redirect links,
+ *  post-building but pre-concatenation of node counts.
+ * @param <type> $tree
+ * @param <type> $ttm
+ * @param <type> $active_only
+ */
+// Note: I'd prefer this to be non-recursive, i.e. tackle the database return,
+// not the tree of links. However, this is not a tidy idea, as core
+// retrieves and treebuilds all-in-one, in _menu_tree_data(), so we'd have to
+// override all that.
+function taxonomy_treemenu_tree_append_node_data(&$tree, $ttm, $active_only = false) {
+  $m = taxonomy_treemenu_path_models($ttm);
+  _taxonomy_treemenu_tree_append_node_data($tree, $ttm, $m['np'], $m['nr'], $active_only);
+  //dpm($self_referenced);
+  //dpm($tree);
+  //dpm($m);
+}
+
+
+function _taxonomy_treemenu_tree_append_node_data(&$tree, $ttm, $np, $nr, $active_only) {
+  //dpm('_taxonomy_treemenu_tree_append_node_links');
+  // Reset the node linkbuilder
+  //_taxonomy_treemenu_tree_append_stock_nodes(&$tree, "", TRUE);
+
+  foreach ($tree as &$item) {
+    // Extract the tid from the lineage.
+    $tid = taxonomy_treemenu_tid_from_lineage($item['link']['tlineage']);
+
+    if ($item['below']) {
+      _taxonomy_treemenu_tree_append_node_data($item['below'], $ttm, $np, $nr, $active_only );
+    }
+ //
+    if ($ttm['nodes'] && (!$active_only || ($active_only && $item['link']['in_active_trail']))) {
+      // This appends a node count anyway.
+      _taxonomy_treemenu_tree_append_node_elements($item, $ttm, $tid, $np, $nr);
+    }
+    elseif ($ttm['hide_empty_links'] || $ttm['node_count']) {
+      $item['link']['node_count'] = taxonomy_treemenu_term_descendant_nodes_count($ttm, array($tid));
+    }
+  }
+}
+
+
+// TODO: unfinished function! Currently unused!
+/*
+function _taxonomy_treemenu_tree_modify_termlink_fields(&$tree, $ttm) {
+    //add node count display, if enabled
+    if ($settings['leaf_node_count']) {
+      $item['link']['link_title'] .= ' <span>(' . $node_count . ')</span>';
+      taxonomy_treemenu_options_html($item['link']['options']);
+    }
+}
+*/
+
+/******************
+ * Tree Builders
+ *****************/
+
+/**
+ * Internal function for adding forcibly expanded link mlids to db_query()
+ * parameters.
+ */
+function _taxonomy_treemenu_expanded_links_args($menu_name, &$placeholders, &$args) {
+    do {
+      $result = db_query("SELECT mlid FROM {menu_links} WHERE menu_name = '%s' AND expanded = 1 AND has_children = 1 AND plid IN (". $placeholders .') AND mlid NOT IN ('. $placeholders .')', array_merge(array($menu_name), $args, $args));
+      $num_rows = FALSE;
+      while ($item = db_fetch_array($result)) {
+        $args[] = $item['mlid'];
+        $num_rows = TRUE;
+      }
+      $placeholders = db_placeholders ($args, 'int'); //implode(', ', array_fill(0, count($args), '%d'));
+    } while ($num_rows);
+}
+
+/**
+ * Get a menu tree (a menu tree is the link data, reconstructed into an array tree).
+ * Not cached. See taxonomy_treemenu_tree_data()
+ * @param <type> $menu_name
+ * @param <type> $item
+ *  If the $item != 0 returns a tree expanded up a trail, if 0 returns the
+ *   items which are direct children of the root.
+ *  If the item is NULL, give a full menu tree.
+ * @return <type>
+ */
+function _taxonomy_treemenu_get_tree($menu_name, $item = NULL) {
+  //dpm('ttm get tree');
+  //dpm($item);
+      // We want plid = 0 (top level) everywhere.
+      $args = array(0);
+      $parents = array();
+      //dpm($item);
+      if (is_null($item)) {
+        // All_data menu.
+        // Get all links in this menu.
+        //dpm('All menu data');
+        $where = ''; //' AND ml.plid NOT IN (%d)';
+
+      }
+      else {
+        if ($item['mlid']) {
+          //dpm('mliding:');
+          //dpm($item);
+          // Dynamic menu, one which only shows links up a trail.
+          // We need to match the values in its p columns and 0 (the top level)
+          // with the plid values of other links.
+          for ($i = 1; $i < MENU_MAX_DEPTH; $i++) {
+            $args[] = $item["p$i"];
+          }
+          //dvm($item);
+          //dvm($args);
+          //$parents is only used for identifying the active trail,
+          $parents = $args = array_unique($args);
+          //dvm($parents);
+           //$parents = array_values($args);
+          //dvm($args);
+          $placeholders = db_placeholders($args,'int');
+
+          // Check for forcibly expanded items
+          //_taxonomy_treemenu_expanded_links_args($menu_name, $placeholders, $args);
+
+          //dvm($args);
+
+          ////$where = ' AND ml.plid IN ('. $placeholders .')';
+
+          // so not as critical as it may appear. See _menu_tree_data().
+          //$parents[] = $item['mlid'];
+
+        }
+        else {
+          // Default dynamic menu.
+          // Get all links with parent as the root (i.e.parent = 0) in this menu.
+          // Check for forcibly expanded items?
+
+         // $where = ' AND ml.plid IN (%d)';
+          //$args[0] = $item['mlid'];
+          $placeholders = '%d';
+          //$where = ' AND ml.plid IN (%d)';
+        }
+
+        // Check for forcibly expanded items
+        _taxonomy_treemenu_expanded_links_args($menu_name, $placeholders, $args);
+        $where = ' AND ml.plid IN ('. $placeholders .')';
+      //dpm($where);
+      }
+
+      // Prepend the menu name.
+      array_unshift($args, $menu_name);
+
+      // Select the links from the table, and recursively build the tree.  We
+      // LEFT JOIN since there is no match in {menu_router} for an external
+      // link.
+      //dpm($parents);
+      //dpm('args:');
+      //dpm($args);
+      return menu_tree_data(db_query("
+        SELECT ml.mlid, m.load_functions, m.to_arg_functions, m.access_callback, m.access_arguments, 
+        m.page_callback, m.page_arguments,
+        m.title, m.title_callback, m.title_arguments, m.type, m.description, ml.*
+        FROM {menu_links} ml LEFT JOIN {menu_router} m ON m.path = ml.router_path
+        WHERE ml.menu_name = '%s'". $where ."
+        ORDER BY p1 ASC, p2 ASC, p3 ASC, p4 ASC, p5 ASC, p6 ASC, p7 ASC, p8 ASC, p9 ASC", $args), $parents);
+}
+
+/**
+ * Gather node links.
+ * The mildest of modifications here adds our own node paths,
+ * and extracts the nid directly from the link information.
+ * @param <type> $tree
+ * @param <type> $node_links
+ */
+function taxonomy_treemenu_tree_collect_node_links(&$tree, &$node_links) {
+  foreach ($tree as $key => $v) {
+    $rp = $tree[$key]['link']['router_path'];
+    if ($rp == 'node/%' || $rp == '/ttm/node%' || $rp == 'ttm/%/node/%') {
+      //$nid = substr($tree[$key]['link']['link_path'], 5);
+      $nid = $tree[$key]['link']['nid'];
+      if (is_numeric($nid)) {
+        $node_links[$nid][$tree[$key]['link']['mlid']] = &$tree[$key]['link'];
+        $tree[$key]['link']['access'] = FALSE;
+      }
+    }
+    if ($tree[$key]['below']) {
+      taxonomy_treemenu_tree_collect_node_links($tree[$key]['below'], $node_links);
+    }
+  }
+}
+
+
+/**
+ * Get a link and fields useful for menu targeting.
+ * 
+ * @param <type> $mlid
+ * @return <type> 
+ */
+function taxonomy_treemenu_get_link($mlid) {
+  return db_fetch_array(db_query("
+    SELECT menu_name, mlid, plid, link_path,
+        link_title,
+        p1, p2, p3, p4, p5, p6, p7, p8, p9
+    FROM {menu_links} WHERE module ='%s' AND mlid = %d", 'treemenu', $mlid));
+}
+
+/**
+ * Cache treemenus. Not much of anything, but cleans up the functions.
+ *
+ * Do call sets only after a get, as the class carries the cid.
+ */
+class _TTMTreeCache
+{
+  static $tree = array();
+  static $cid;
+  
+  static function setStatic($tree) {
+    //dpm('set static:');
+    //dvm(self::$cid);
+    $tree[self::$cid] = $tree;
+  }
+
+  static function setCache($tree) {
+    //dpm('set cache');
+    //dvm(self::$cid);
+    cache_set(self::$cid, $tree, 'cache_menu');
+  }
+
+  /**
+   * Retrieve treemenu tree cache, if any.
+   *
+   * If mlid is 0, returns the default menu.
+   *
+   * @param <type> $menu_name
+   * @param <type> $mlid
+   * @return Cached data, or NULL.
+   */
+  static function get($menu_name, $mlid = NULL, $self_referenced = false) {
+    // Generate a cache ID (cid) specific for this $menu_name and $mlid.
+    // Namespace also, though only a hacker would get near it.
+    $static_tag = (is_null($mlid)) ? 'all-': '';
+    if ($self_referenced) $static_tag = 'self-';
+    self::$cid = 'links:'. $menu_name .'-ttm:'. $static_tag .'cid:'. $mlid;
+    //dpm(self::$cid);
+    if (!($data = self::$tree[self::$cid])) {
+      // If the static variable doesn't have the data, check {cache_menu}.
+      //$data = cache_get(self::$cid, 'cache_menu');
+    }
+    return $data;
+  }
+}
+
+
+/** NEW
+ * Get the data structure representing a named menu tree. Cached.
+ *
+ * Expanding menus default to their root visual items. Full_data menus default to
+ * the entire menu.
+ *
+ * Only applies to block menus.
+ *
+ * @param <type> $ttm
+ * @param <type> $mlid
+ *   If this is there, it's an expanded menu. If 0 its a unexpanded menu,
+ *   and if NULL its a full data menu.
+ * @return <type>
+ */
+function taxonomy_treemenu_tree_data($ttm, $mlid = NULL) {
+
+  //$mlid = 2031;
+  $item = ($mlid) ? taxonomy_treemenu_get_link($mlid) : $mlid;
+
+  $tree = _TTMTreeCache::get($ttm['menu_name'], $mlid);
+  //dpm($item);
+  if (empty($tree)) {
+   //dpm('call');
+
+    $tree = _taxonomy_treemenu_get_tree($ttm['menu_name'], $item);
+
+    //Then mods...
+    //dpm('tree pre mods:');
+    //dvm($ttm);
+
+    //dvm($ttm['ttm_paging']);
+    //if (!$ttm['nodes'] && !$ttm['ttm_paging']) {
+ 
+    //}
+
+
+    // Append node elements and/or counts
+    taxonomy_treemenu_tree_append_node_data($tree, $ttm);
+
+
+    // We don't do html titles for multilingual menus, code is in the translation hook.
+    if ($ttm['node_count'] || $ttm['hide_empty_links']) {
+      //dpm('not multilingual');
+      //dpm($ttm['menu_name']);
+      //dpm(!taxonomy_treemenu_is_multilingual($ttm['vid']));
+      _taxonomy_treemenu_tree_process_node_counts($tree, $ttm['show_term_descendants'], $ttm['hide_empty_links'], !taxonomy_treemenu_is_multilingual($ttm['vid']));
+     //restart here, garbage man
+    }
+    //if ($ttm['menu_name'] == 'menu-indigotree') {
+      //dpm('tree after mods:');
+      //dpm($tree);
+    //}
+    taxonomy_treemenu_tree_collect_node_links($tree, $node_links);
+         //dpm('node links');
+         //dpm($node_links);
+    _TTMTreeCache::setCache($tree);
+  }
+
+  //dpm('localize');
+
+  //check access
+  taxonomy_treemenu_tree_check_access($tree, $node_links);
+  //if ($ttm['menu_name'] == 'menu-indigotree') {
+    //dpm('tree after access:');
+    //dpm($tree);
+  //}
+  
+  // Render node counts into titles
+  // Jolly nice it would be to cache this, but we can't get at the ['options']
+  // element that way, without unserializing. Also protects us against piling
+  // up translation strings with different node count variants.
+  // Multilingual counts are added by the translation hook.
+  if ($ttm['node_count'] && !taxonomy_treemenu_is_multilingual($ttm['vid'])) {
+    _taxonomy_treemenu_tree_render_node_counts($tree);
+  }
+
+
+
+  _TTMTreeCache::setStatic($tree);
+
+
+
+  //if ($ttm['menu_name'] == 'menu-realtext') {
+    //dpm($tree);
+  //}
+
+  //taxonomy_treemenu_term_translation_link(&$links, $path);
+  return $tree;
+}
+
+
+function taxonomy_treemenu_tree_self_data($ttm, $mlid = 0) {
+  //dpm('ttm tree data');
+  //dpm($ttm['menu_name']);
+  //dvm($mlid);
+  $item = ($mlid) ? taxonomy_treemenu_get_link($mlid) : $mlid;
+
+  $tree = _TTMTreeCache::get($ttm['menu_name'], $mlid, true);
+  //dpm($item);
+  if (empty($tree)) {
+    //dpm('call: ' . $ttm['menu_name']);
+
+    $tree = _taxonomy_treemenu_get_tree($ttm['menu_name'], $item);
+
+    // Append node elements and/or counts
+    taxonomy_treemenu_tree_append_node_data($tree, $ttm, true);
+
+
+    // We don't do html titles for multilingual menus, code is in the translation hook.
+    if ($ttm['node_count'] || $ttm['hide_empty_links']) {
+      _taxonomy_treemenu_tree_process_node_counts($tree, $ttm['show_term_descendants'], $ttm['hide_empty_links'], !taxonomy_treemenu_is_multilingual($ttm['vid']));
+    }
+
+    //taxonomy_treemenu_tree_dup_expansion_item($tree, $ttm['menu_name'], 0);
+    taxonomy_treemenu_tree_self_referenced_modifications($tree, $ttm['menu_name'], !$ttm['nodes']);
+
+    //if ($ttm['menu_name'] == 'menu-redtree') {
+     //dpm('tree after mods:');
+     //dpm($tree);
+   // }
+
+
+
+    taxonomy_treemenu_tree_collect_node_links($tree, $node_links);
+         //dpm('node links');
+         //dpm($node_links);
+    _TTMTreeCache::setCache($tree);
+  }
+
+  //dpm('localize');
+    //if ($ttm['menu_name'] == 'menu-redtree') {
+      //dpm('tree after mods:');
+      //dpm($tree);
+    //}
+  //check access
+  taxonomy_treemenu_tree_check_access($tree, $node_links);
+  //if ($ttm['menu_name'] == 'menu-redtree') {
+    //dpm('tree after access:');
+    //dpm($tree);
+  //}
+
+  // Render node counts into titles
+  // Jolly nice it would be to cache this, but we can't get at the ['options']
+  // element that way, without unserializing. Also protects us against piling
+  // up translation strings with different node count variants.
+  // Multilingual counts are added by the translation hook.
+  if ($ttm['node_count'] && !taxonomy_treemenu_is_multilingual($ttm['vid'])) {
+    _taxonomy_treemenu_tree_render_node_counts($tree);
+  }
+
+
+
+  _TTMTreeCache::setStatic($tree);
+
+
+
+  //if ($ttm['menu_name'] == 'menu-realtext') {
+    //dpm($tree);
+  //}
+
+  //taxonomy_treemenu_term_translation_link(&$links, $path);
+  return $tree;
+}
+
+/**
+ * Append node counts to the ['title'] element of a tree.
+ * This should be called after tree access handling, by which point ['link_title']
+ * has been transfered to ['title'], for rendering.
+ * Makes ['localized_options']['html'] = true.
+ * @param <type> $tree
+ */
+function _taxonomy_treemenu_tree_render_node_counts(&$tree) {
+    //dpm('taxonomy_treemenu_tree_counts_concat');
+  foreach ($tree as &$item) {
+        //$item['link']['title'] .= $item['link']['node_count'];
+    
+        $item['link']['localized_options']['html'] = true;
+        if ($item['link']['duplicate']) {
+          $item['link']['title'] = '<small><i>' . $item['link']['title'] . '</i></small>';
+        }
+        else {
+          $item['link']['title'] .= $item['link']['node_count'];
+        }
+        //$item['link']['title_callback'] = 'check_plain';
+    // Modify the subtree.
+    if ($item['below'] !== FALSE) {
+      _taxonomy_treemenu_tree_render_node_counts($item['below']);
+    }
+  }
+}
+
+
+function theme_taxonomy_treemenu_menu_and_title($ttm) {
+  $output = '<div id="page-block-treemenu-'. check_plain($ttm['menu_name']) ."\" class=\"clear-block page-block page-block-treemenu\">\n";
+  $output .= '<h2>'. $ttm['title'] ."</h2>\n";
+  $output .= '<div class="clear-block">';
+  if ($ttm['description']) {
+    $output .= '<div class="taxonomy-treemenu-description">'. $ttm['description'] ."</div>\n";
+  }
+  $output .= '<div class="treemenu"><div class="content">'. $ttm['body'] ."</div>\n</div>\n</div>\n</div>\n";
+  drupal_add_css(drupal_get_path('module', 'taxonomy_treemenu') .'/css/taxonomy-treemenu-page.css');
+  return $output;
+}
+
+function theme_taxonomy_treemenu_menu($ttm) {
+  if ($ttm['description']) {
+    $output = '<div class="taxonomy-treemenu-description">'. $ttm['description'] ."</div>\n";
+  }
+  $output .= '<div id="page-block-treemenu-'. check_plain($ttm['menu_name']) ."\" class=\"treemenu\">\n";
+  $output .= '<div class="content clear-block">'. $ttm['body'] ."</div>\n</div>\n";
+  drupal_add_css(drupal_get_path('module', 'taxonomy_treemenu') .'/css/taxonomy-treemenu-page.css');
+  return $output;
+}
+
+// Note:
+// In core, Drupal caches tree output through
+// menu_tree(), for reasons I am yet to fathom (multiple menus on one page?)
+// We don't want to do that, anyhow, as we may have multiple versions of a menu
+// on a page.
+// TO CONSIDER: This is currently looking redundant, but what of expanding menus?
+function taxonomy_treemenu_output($ttm, $mlid = NULL, $self_page = false) {
+    //dpm($ttm['menu_name']);
+    //dvm($self_page);
+    if ($self_page) {
+      $tree = taxonomy_treemenu_tree_self_data($ttm, $mlid);
+    }
+    else {
+      $tree = taxonomy_treemenu_tree_data($ttm, $mlid);
+    }
+    //dpm('output tree:');
+    //if ($ttm['menu_name'] == 'menu-lineage') {
+      //dpm($tree);
+      //dpm(menu_tree_output($tree));
+    //}
+    return menu_tree_output($tree);
+}
+
+
+
+function taxonomy_treemenu_render_block($menu_name) {
+  // Cache this output
+  static $menu_output = array();
+  
+  if (!isset($menu_output[$menu_name])) {
+    
+    $ttm = taxonomy_treemenu_load($menu_name, FALSE);
+    $e = taxonomy_treemenu_is_expandable($ttm);
+    //dpm('expandable');
+    //dvm($e);
+    if ($e && $ttm['expand']) {
+      //TODO: Treemenu items need translating into default language
+      $mlid = taxomony_treemenu_url_get_mlid($ttm);
+      //dvm($mlid);
+      $menu_output[$menu_name] = taxonomy_treemenu_output($ttm, $mlid);
+    }
+    else {
+      $menu_output[$menu_name] = taxonomy_treemenu_output($ttm);
+    }
+    //dpm($menu_output[$menu_name]);
+  }
+  return $menu_output[$menu_name];
+}
+
+function taxonomy_treemenu_render_menu_page($ttm, $mlid = NULL) {
+  //drupal_set_title(taxonomy_treemenu_human_title($ttm));
+    // DHTML menus.
+  if($ttm['dhtml_pages']) {
+    //dpm('dhtml page');
+    $output = theme('dhtml_menu_tree', taxonomy_treemenu_tree_data($ttm));
+  }
+  else {
+    //dpm('standard page');
+    // The end paramater is "if it's a self-referencing page"
+      //dpm($ttm['menu_name']);
+      //dvm($ttm);
+    $output = taxonomy_treemenu_output($ttm, $mlid, ($ttm['expand'] && $ttm['page_urls_to_mlid']) );
+  }
+  $ttm['description'] = filter_xss_admin($ttm['description']);
+  $ttm['body'] = $output;
+  return theme('taxonomy_treemenu_menu', $ttm);
+}
+
+
+/**
+ * Parse and load a url page string.
+ *
+ * Parses for the basic machine name, does some safety checks,
+ * if ok, loads the menu custom data.
+ */
+ /*
+ We're checking for menu names, so we borrow the regexp form from menu_edit_menu_validate().
+ We then mimic the form of taxonomy_terms_parse_string() for the parsing code.
+ This is a very hefty check, as the strings are then cross checked against existing menu names
+ in the variable, which have, of course, been validated through Drupal core.
+ */
+ /*
+function taxonomy_treemenu_parse_menu_str(old version)($str_menus) {
+  $menu_names = array();
+  $str_parts = array();
+  //In a url, '+' can become ' ', so we parse for all
+  if (preg_match('/^([a-z0-9-]+[+, ])*[a-z0-9-]+$/', $str_menus)) { 
+    $str_parts = preg_split('/[+, ]/', $str_menus);
+    $tmd = variable_get('taxonomy_treemenu_data', array()); 
+    foreach ($str_parts as $menu_name) {
+      $menu_name = 'menu-' . $menu_name;
+      if (!empty($tmd[$menu_name])) {
+        $menu_names[] = $menu_name;
+      }
+    }
+  }
+  return $menu_names;
+}
+*/
+
+
+
+/****************************
+ * Preprocessing and themes
+ ***************************/
+
+// Testing only
+/*
+function taxonomy_treemenu_preprocess_page(&$v) {
+
+  dpm('ttm preprocess page:');
+
+  dpm($v);
+}
+*/
+
+/*
+function taxonomy_treemenu_preprocess_node(&$variables) {
+  dpm('ttm preprocess node:');
+  dpm($variables);
+}
+*/
+
+
+/**
+ * Preprocess and validate data for a treemenu.
+ *
+ * @param $variables
+ */
+/*
+function template_preprocess_treemenu(&$variables) {
+  //dpm($variables);
+}
+*/
+
+
+/** #
+ * Theme a taxonomy_treemenu page as HTML output.
+ *
+ * @param $menu_content
+ *   rendered treemenu output
+ *
+ * @ingroup themeable
+ */
+ /*
+function theme_taxonomy_treemenu_menu_page($menu_content) {
+  //drupal_add_css(drupal_get_path('module', 'taxonomy') .'/taxonomy.css');
+  //dpm($menus);
+  $output = '';
+
+  // Much the same as theme_taxonomy_term_page
+  // Only can be one term, though, so we always display a description.
+  // Check that a description is set - need to do this?
+  if (count($menus) == 1) {  
+    if (!empty($menus[0]['description'])) {
+      $output .= '<div class="taxonomy-term-description">';
+      $output .= filter_xss_admin($menus[0]['description']);
+      $output .= '</div>';
+    }
+  } 
+
+  return $output . $menu_content;
+}
+*/
+
+/*
+function template_preprocess_page_treemenus(&$variables) {
+  //if this is bad, tell me why and fix it.
+  drupal_add_css(drupal_get_path('module', 'taxonomy_treemenu') . '/page_treemenu.css', 'module', 'all', FALSE);
+  $treemenus = $variables['treemenus'];
+  $variables['treemenus_sane'] = array();
+  //all this data is already sanitised by theme 'treemenu'
+  //but we are here collecting the samne stuff away from the insane stuff.
+  foreach ($treemenus as $name => $treemenu) {
+    $variables['treemenus_sane'][$name] = array(
+       'menu_name' => $treemenu['menu_name'],
+       'body' => $treemenu['body'],
+    );
+  }
+  //dpm($variables);
+}
+*/
+
+
+
+/*******************************
+ * Pagers, and support functions
+ ******************************/
+
+/** #
+ * Parse and load a url page string.
+ *
+ * Parses for stripped machine names, loads the menu custom data.
+ * Loader will silently drop bad URL info.
+ * Returns an array of full menu information, keyed by menu name
+ *  (short version, not full machine name).
+ */ 
+ //currently redundant, but here if we reenable multiple menus.
+ /*
+function taxonomy_treemenu_parse_menu_str($str_menus) {
+  $menus = array(); 
+  $str_parts = preg_split('/[+, ]/', $str_menus);
+  foreach ($str_parts as $menu_name) {
+    $data = taxonomy_treemenu_load('menu-' . $menu_name);
+    if ($data) {
+      $menus[$menu_name] = $data;
+    }
+  }
+  return $menus;
+}
+*/
+
+// If we havn't got an mlid, we might still find one for blocks.
+// TODO: Treemenu items need translating into default language?
+// AND menu module caches these?
+// WARNING: Make sure it CAN be expanded first. 
+// Don't call unprotected, or it will return wildness.
+function taxomony_treemenu_url_get_mlid($ttm) {
+  $path = $_GET['q'];
+  return db_result(db_query("SELECT mlid FROM {menu_links} WHERE link_path='%s' AND menu_name='%s'", $path, $ttm['menu_name']));
+
+ // $item = menu_get_item();
+ //  if($item['path']=ttm/%/term/%
+ // return $item;
+}
+
+
+function taxonomy_treemenu_get_parents_tids($menu_name, $type, $id) {
+  $parents = array();
+  if ($type == 'node') {
+    // Protect against nodes appearing in other vocabularies.
+    $r = TTMData::rootData($menu_name);
+    $result = db_query('SELECT tn.tid FROM {term_node} tn JOIN {term_data} td ON tn.tid = td.tid WHERE tn.nid = %d AND td.vid =%d', $id, $r['vid']);
+    while($data = db_fetch_array($result)) {
+      $parents[] = $data['tid'];
+    };
+  }
+  else {
+    $result = db_query('SELECT parent FROM {term_hierarchy} WHERE tid = %d', $id);
+     while($data = db_fetch_array($result)) {
+      $parents[] = $data['parent'];
+    };
+  }
+  return $parents;
+ }
+
+/**
+ * Find and render a css file from an array of identifiers.
+ * @param $dir
+ *   To search in. No recursion.
+ * @param $fids
+ *   An array of partial filenames, to select from.
+ *   The array is reversed and the first match wins.
+ * @param  $filename_prefix
+ *   To add to the fids, for matching against existing files.
+ * @return
+ *   A rendered css line, ready for a template.
+ */
+function taxonomy_treemenu_find_css_file($dir, $fids, $filename_prefix = '') {
+  //dpm('find css files');
+  //dpm(is_dir($dir));
+
+  $output = '';
+  if (is_null($fids)) $fids = array();
+  $files = file_scan_directory($dir, '.*\.css$', array(), 0, FALSE, 'name');
+  //dpm('files:');
+  //dvm($files);
+  $fids = array_reverse($fids);
+  //dpm($fids);
+  foreach ($fids as $target ) {
+    $fn = $filename_prefix . $target;
+    //dpm('search');
+    //dpm($fn);
+    if ($files[$fn]) {
+      $to_load = $files[$fn]->basename;
+      break;
+      }
+  }
+  if ($to_load) {
+    $filepath = $dir .'/'. $to_load .'?'. substr(variable_get('css_js_query_string', '0'), 0, 1);
+    $output = '<link type="text/css" rel="stylesheet" media="all" href="'. $filepath .'" />'."\n";
+  }
+  //dpm('output:');
+  //dpm($output);
+  return $output;
+}
+
+/**
+ * Find and render a css file with a similar name to the template suggestions.
+ * @param $dir
+ * @param $template_suggestions
+ * @return
+ *  single file from the first matching suggestion, rendered and ready for a template.
+ */
+/*
+function taxonomy_treemenu_find_css_file($dir, $template_suggestions) {
+  //dpm('find css files');
+  //dpm(is_dir($dir));
+
+  $output = '';
+  $files = file_scan_directory($dir, '.*\.css$', array(), 0, FALSE, 'name');
+  //dpm('files:');
+  //dvm($files);
+  $template_suggestions = array_reverse($template_suggestions);
+  //dpm($template_suggestions);
+  foreach ($template_suggestions as $target ) {
+    if ($files[$target]) {
+      $to_load = $files[$target]->basename;
+      break;
+      }
+  }
+  if ($to_load) {
+    $filepath = $dir .'/'. $to_load .'.css' .'?'. substr(variable_get('css_js_query_string', '0'), 0, 1);
+    $output = '<link type="text/css" rel="stylesheet" media="all" href="'. $filepath .'" />'."\n";
+  }
+  //dpm('output:');
+  //dpm($output);
+  return $output;
+}
+*/
+
+/**
+ * Find all ancestor tids from treemenu node or term data.
+ * Not currently used in the module, but good for preprocessing.
+ * @param $menu_name
+ * @param $type
+ *   'node' or 'term'
+ * @param $id
+ * @return
+ *   Unique array of tids. No particular order.
+ */
+ function taxonomy_treemenu_get_tid_ancestry($menu_name, $type, $id) {
+  $parents = $args = $path_tids = array();
+  $args = taxonomy_treemenu_get_parents_tids($menu_name, $type, $id);
+  // Rather than hunt recursively through the taxonomy, we can use the
+  // treemenu data to grab our trails from the stored paths.
+  $phs = array_fill(0, count($args), 'tlineage LIKE "%/%d"');
+  $where = implode(' OR ', $phs);
+  $args[]= $menu_name;
+  $result = db_query('SELECT tlineage FROM {menu_links} WHERE module = "treemenu" AND '. $where .' AND menu_name = "%s"', $args);
+  while ($data = db_fetch_array($result)) {
+    $path_tids = explode('/', $data['tlineage']);
+    // get rid of the ttprnts prefix
+    //array_shift($path_tids);
+    // And the vocab
+    array_shift($path_tids);
+    $parents = array_merge($parents, $path_tids);
+  }
+  return array_unique($parents);
+ }
+
+
+/**
+ * Find menu mlid parents from node or term data.
+ * Used for breadcrumbing.
+ * @param $menu_name
+ * @param $type
+ *   'node'/'term'
+ * @return array of mlids
+ */
+ //TODO: Redundancy. See taxonomy_treemenu_get_parents_tids().
+function taxonomy_treemenu_get_parents_mlid($menu_name, $type, $id) {
+  //dpm('ttm get parents mlid');
+  $parents = array();
+  if ($type == 'node') {
+    // Protect against nodes appearing in other vocabularies.
+    $r = TTMData::rootData($menu_name);
+    $result = db_query('SELECT tn.tid FROM {term_node} tn JOIN {term_data} td ON tn.tid = td.tid WHERE tn.nid = %d AND td.vid =%d', $id, $r['vid']);
+    while($data = db_fetch_array($result)) {
+      $args[] = $data['tid']; 
+    };
+  }
+  else {
+    $result = db_query('SELECT parent FROM {term_hierarchy} WHERE tid = %d', $id);
+     while($data = db_fetch_array($result)) {
+      $args[] = $data['parent'];
+    };
+  }
+
+  $phs = array_fill(0, count($args), 'tlineage LIKE "%/%d"');
+  $where = implode(' OR ', $phs);
+  $args[]= $menu_name;
+  $result = db_query('SELECT mlid FROM {menu_links} WHERE module = "treemenu" AND '. $where .' AND menu_name = "%s"', $args);
+  //SELECT mlid FROM {menu_links} WHERE link_path LIKE "%/9" AND link_path LIKE "%/19" AND link_path LIKE "%/40" AND menu_name = "menu-indigotree";
+
+  while ($data = db_fetch_array($result)) {
+    $parents[] = $data['mlid'];
+  }
+  return $parents;
+}
+
+
+function taxonomy_treemenu_new_base_trail($ttm, $no_root = TRUE) {
+  $trail = array();
+  $trail[] = array('title' => t('Home'), 'href' => '<front>', 'localized_options' => array(), 'type' => 0);
+  if (!$no_root) {
+    $trail[] = array('title' => t($ttm['title']), 'href' => 'ttm/'. $ttm['menu_name'], 'localized_options' => array(), 'type' => 0);
+  }
+  return $trail;
+}
+
+
+/**
+ * Recursively search for a set of targets in a tree, building the trail for for
+ * each target.
+ * The result is an array of trail arrays, placed in the array $trails.
+ *
+ * @param $tree
+ * @param $trails
+ *   An array to load the trail data into.
+ * @param $curr
+ *   An array which carries the trail as the function recurses.
+ *   Can be pushed with data which should always be at the start of a trail.
+ * @param $targets
+ *   An array of mlids.
+ */
+function _taxonomy_treemenu_tree_get_trails(&$tree, &$trails, &$curr, $targets) {
+  //dpm('set trails');
+  $curr[] = '';
+  foreach ($tree as $item) {
+    $curr[count($curr) - 1] = $item['link'];
+    if (in_array($item['link']['mlid'], $targets)) {
+      $trails[] = $curr;
+    }
+    if ($item['below']) {
+      _taxonomy_treemenu_tree_get_trails($item['below'], $trails, $curr, $targets);
+    }
+  }
+  array_pop($curr);
+}
+
+
+/**
+ * Get all menu trails from node or term data.
+ * @param <type> $ttm
+ * @param <type> $type
+ * @return <type>
+ */
+function taxonomy_treemenu_get_active_trails_all($ttm, $type, $id) {
+  $trail = $trails = $parents = array();
+
+  // Create base trail with default items.
+  $trail = taxonomy_treemenu_new_base_trail($ttm, TRUE);
+  $parents = taxonomy_treemenu_get_parents_mlid($ttm['menu_name'], $type, $id);
+  //dpm('get active trail all');
+  $parents = array_unique($parents);
+
+  // Call with NULL to get an all data tree.
+  $tree = taxonomy_treemenu_tree_data($ttm);
+  _taxonomy_treemenu_tree_get_trails($tree, $trails, $trail, $parents);
+
+  // If no parents are mateched in the tree, use the base trail.
+  if (empty($trails)) {
+    $trails[] = $trail;
+  }
+  return $trails;
+}
+
+
+/** # get parents will do this...
+ * Find a menu parent mlid from node or term data.
+ * !WARNING: Only works on single hierarchy menus! Will return minimal otherwise.
+ * @param $menu_name
+ * @param $type 'node'/'term'
+ * @return mlid
+ */
+function taxonomy_treemenu_get_parent_mlid($menu_name, $type, $id) {
+  //dpm('get parent');
+  //dpm($menu_name);
+
+  if ($type == 'node') {
+    // Protect against nodes appearing in other vocabularies.
+    $r = TTMData::rootData($menu_name);
+    $parent_tid = db_result(db_query('SELECT tn.tid FROM {term_node} tn JOIN {term_data} td ON tn.tid = td.tid WHERE tn.nid = %d AND td.vid =%d', $id, $r['vid']));
+  }
+  else {
+    $parent_tid = db_result(db_query('SELECT parent FROM {term_hierarchy} WHERE tid = %d', $id));
+  }
+
+  $where = 'tlineage LIKE "%/%d"';
+  return db_result(db_query('SELECT mlid FROM {menu_links} WHERE module = "treemenu" AND '. $where .' AND menu_name = "%s"', $parent_tid, $menu_name));
+}
+
+
+/**
+ * Get the trail using an expanded version of a targeted tree.
+ * !WARNING: Only works on single hierarchy menus! Will NULL otherwise?
+ * @param <type> $ttm
+ * @param <type> $type
+ * @return <type>
+ */
+// Similar to the Drupal method, but that is bundled.
+function taxonomy_treemenu_get_active_trail($ttm, $type, $id) {
+  //dpm('get active trail');
+  // $id just works as a flag.
+  $trail = taxonomy_treemenu_new_base_trail($ttm, TRUE);
+  $mlid = taxonomy_treemenu_get_parent_mlid($ttm['menu_name'], $type, $id);
+
+  // Call with the mlid to get a tree with an active trail (expanding, targeted).
+  $tree = taxonomy_treemenu_tree_data($ttm, $mlid);
+  list($key, $curr) = each($tree);
+  while ($curr) {
+    // Add the link if it's in the active trail, then move to the link below.
+    if ($curr['link']['in_active_trail']) {
+      $trail[] = $curr['link'];
+      $tree = $curr['below'] ? $curr['below'] : array();
+    }
+    list($key, $curr) = each($tree);
+  }
+    
+  // Make sure the current page is in the trail (needed for the page title),
+  // TO CONSIDER: Treemenu ignores this form of titling. For now?
+  //$last = count($trail) - 1;
+  //if ($trail[$last]['href'] != $item['href']) {
+   // $trail[] = $item;
+  //}
+
+  return $trail;
+}
+
+
+/**
+ * Return a themed breadcrumbs trail.
+ *
+ * @param $breadcrumbs
+ *   An array of arrays containing the breadcrumb links.
+ * @return a string containing the breadcrumbs output.
+ */
+function theme_taxonomy_treemenu_breadcrumbs($breadcrumbs) {
+  //dpm('theme breadcrumbs');
+  //dpm($breadcrumbs);
+  $output = '';
+  if (!empty($breadcrumbs)) {
+    $output = '<div id="breadcrumbs-container">';
+    foreach($breadcrumbs as $breadcrumb) {
+      $output .= '<div class="breadcrumbs">'. implode(' » ', $breadcrumb) .'</div>';
+    }
+    $output .= '</div>';
+  }
+  return $output;
+}
+
+
+/**
+ * Set/Get multiple breadcrumbs.
+ * Fill in the parameters to set the internal variable.
+ *
+ * @staticvar <type> $stored_breadcrumb
+ * @param <type> $ttm
+ *   If NULL, returns previous results stored on the static.
+ * @param <type> $type
+ * @param <type> $id
+ * @return
+ *   If $ttm is NULL (the default) an array of arrays of breadcrumb links.
+ *   Otherwise, resets the crumb trail and returns the completed crumb.
+ */
+function taxonomy_treemenu_get_breadcrumbs($ttm = NULL, $type= NULL, $id = NULL) {
+  static $stored_breadcrumb;
+  if (is_null($ttm)) {
+    return $stored_breadcrumb;
+  }
+
+  // 'Unset' Drupals active breadcrumb.
+  drupal_set_breadcrumb('');
+  //drupal_add_css(drupal_get_path('module', 'taxonomy_treemenu') . '/css/taxonomy-treemenu-page.css');
+
+  $breadcrumbs = $breadcrumb = array();
+
+  // NOTE: taxonomy_treemenu_get_active_trails_all() uses an access checked tree.
+  $active_trails = taxonomy_treemenu_get_active_trails_all($ttm, $type, $id);
+
+  foreach ($active_trails as $trail) {
+    $breadcrumb = array();
+    foreach ($trail as $parent) {
+      $breadcrumb[] = l($parent['title'], $parent['href'], $parent['localized_options']);
+    }
+    $breadcrumbs[] = $breadcrumb;
+  }
+
+  $stored_breadcrumb = $breadcrumbs;
+  return $breadcrumbs;
+}
+
+/**
+ * Get set a singular breadcrumb.
+ * Uses Drupal search-the-active-path method.
+ * @param <type> $ttm
+ * @param <type> $type
+ * @param <type> $id
+ * @return <type>
+ */
+function taxonomy_treemenu_get_active_breadcrumb($ttm, $type, $id) {
+  $breadcrumb = array();
+
+  // NOTE: taxonomy_treemenu_get_active_trail() uses an access checked tree.
+  $active_trail = taxonomy_treemenu_get_active_trail($ttm, $type, $id);
+
+  foreach ($active_trail as $parent) {
+    $breadcrumb[] = l($parent['title'], $parent['href'], $parent['localized_options']);
+  }
+
+  return $breadcrumb;
+}
+
+
+// NEW
+//function taxonomy_treemenu_node_page($ttm, $nid) {
+function taxonomy_treemenu_node_page($ttm, $node) {
+  //dpm('ttm node page:');
+  //$ttm = $data['menu'];
+  //$nid = $data['target']['id'];
+
+  //dpm($ttm);
+  //dvm($nid);
+  $output = '';
+  // Breadcrumb.
+  /*
+  $ms = TTMData::isMultiple($ttm['menu_name']);
+  if ($ms['multiple'] && $ttm['multiple_breadcrumbs']) {
+    drupal_set_breadcrumb( taxonomy_treemenu_get_breadcrumbs($ttm, 'node', $nid));
+  }
+  else {
+    drupal_set_breadcrumb(taxonomy_treemenu_get_active_breadcrumb($ttm, 'node', $nid));
+  }
+*/
+
+  // Sets the title also.
+  //$output .= node_page_view(node_load($nid));
+
+   // Breadcrumb.
+  $ms = TTMData::isMultiple($ttm['menu_name']);
+  if ($ms['multiple'] && $ttm['multiple_breadcrumbs']) {
+    drupal_set_breadcrumb( taxonomy_treemenu_get_breadcrumbs($ttm, 'node', $node->nid));
+  }
+  else {
+    drupal_set_breadcrumb(taxonomy_treemenu_get_active_breadcrumb($ttm, 'node', $node->nid));
+  }
+
+  $output .= node_page_view($node);
+
+  return $output;
+}
+
+
+function taxonomy_treemenu_term_page($ttm, $terms) {
+  //dpm('ttm term page:');
+  //dvm($terms);
+  $tid = $terms['tids'][0];
+
+  $output = '';
+  //return $output;
+  // Breadcrumb
+  $mult = TTMData::isMultiple($ttm['menu_name']);
+  if ($mult['hierarchy'] && $ttm['multiple_breadcrumbs']) {
+   // $output = theme('taxonomy_treemenu_breadcrumbs', taxonomy_treemenu_get_breadcrumbs($ttm, 'term', $tid));
+            //dpm('is multiple');
+            //dpm($output);
+      drupal_set_breadcrumb( taxonomy_treemenu_get_breadcrumbs($ttm, 'term', $tid));
+  }
+  else {
+    //dpm('not multiple');
+    drupal_set_breadcrumb(taxonomy_treemenu_get_active_breadcrumb($ttm, 'term', $tid));
+  }
+  //dpm('ttm term page:');
+  //dvm($output);
+  // Sets the title also.
+  require_once(drupal_get_path('module', 'taxonomy_treemenu') . '/includes/taxonomy_treemenu.pages.inc');
+  $output .= taxonomy_treemenu_structured_term_output($ttm, $tid, $terms, $op = 'page');
+
+  return $output;
+}
+
+
+// NEW
+function taxonomy_treemenu_page($ttm) {
+  $output = '';
+  //dpm('ttm page2');
+  //dvm($ttm);
+
+  // Breadcrumb. Can only be 'home', for now, as untargeted, so do nothing.
+
+  // Title. This is provided by the render page function,
+  //   so set to null here to avoid duplicate titles.
+  drupal_set_title(check_plain($ttm['title']));
+
+  $e = taxonomy_treemenu_is_expandable($ttm);
+  //dpm('expandable');
+  //dvm($e);
+  if ($e && $ttm['expand']) {
+    $mlid = 0;
+    $output = taxonomy_treemenu_render_menu_page($ttm, $mlid);
+  }
+  else {
+    // No mlid, implies static menu, default rendering.
+    $output = taxonomy_treemenu_render_menu_page($ttm);
+  }
+  //dpm($output);
+  return $output;
+}
+
+function taxonomy_treemenu_mlid_page($mlid, $ttm) {
+  $output = '';
+  //dpm('ttm page2');
+  //dvm($ttm);
+
+  // Breadcrumb. Can only be 'home', for now, as untargeted, so do nothing.
+
+  // Title. This is provided by the render page function,
+  //   so set to null here to avoid duplicate titles.
+  drupal_set_title(check_plain($ttm['title']));
+
+  $output = taxonomy_treemenu_render_menu_page($ttm, $mlid);
+
+  //dpm($output);
+  return $output;
+}
+
+function taxonomy_treemenu_advanced_help_page($target) {
+
+  $items = array();
+  $output_items = array();
+  $output  = '<p class="description">'. t('Quick links to Taxonomy Treemenus Advanced Help pages. ') .'</p>';
+  $output .= '<p class="description">'. t('Please note that this site is reporting that Advanced Help is either not installed or not enabled. ');
+  $output .= t('These links are provided so users can look through the files using the administration interface. ');
+  $output .= t('When using these pages and links, the Advanced Help special internal links will return page errors, and the parent structure of the files is not visible.') .'</p>';
+
+  $module_path = drupal_get_path('module', 'taxonomy_treemenu');
+  $module = 'taxonomy_treemenu';
+  if (file_exists("$module_path/help/$module.help.ini")) {
+    $path = "$module_path/help";
+    $info = parse_ini_file("./$module_path/help/$module.help.ini", TRUE);
+  }
+
+  // Build a simple array of item data.
+  foreach ($info as $name => $topic) {
+    $file = !empty($topic['file']) ? $topic['file'] : $name;
+    $items[$file] = $topic['title'];
+  }
+
+  if ($target == 'overview') {
+    foreach ($items as $file => $title) {
+      $output_items[] = l($title, 'admin/help/ttm-advanced-help/'. $file);
+    }
+    $output .= theme('item_list', $output_items);
+  }
+
+  if ($target != 'overview') {
+    $title = $items[$target];
+    if ($title) {
+      drupal_set_title(check_plain($title));
+      $output .= filter_xss_admin(file_get_contents("./$module_path/help/". $target .'.html'));
+    }
+  }
+  return $output;
+}
+
+
+/** #(for the moment)
+ * Page callback that renders a treemenu (or several treemenus provided in a string).
+ */
+ /*Similar to taxonomy_term_page in taxonomy.pages.inc
+ except we do not differentiate between symbols
+ with appropriate checks. We can only append menus with +, \s, or ','
+ Note that taxonomy_treemenu_parse_menu_str() will return
+ validated, existing menu names, if anything.
+ */
+ //currently redundant, but here if we reenable multiple menus.
+ /*
+function taxonomy_treemenu_page_menus($str_menus = '') {
+  //test area!
+
+  //dpm('tm paging menus:');
+  
+  $menus = array();
+  $titles = array();
+  $output = '';
+  
+  $menus = taxonomy_treemenu_parse_menu_str($str_menus);
+  if (empty($menus)) {
+    drupal_not_found();
+    return;
+  }
+  
+  //do something with breadcrumbs?  
+
+  foreach ($menus as $name => $menu) {
+    //$menu_content .= taxonomy_treemenu_render_menu($menu);
+    $menus[$name]['body'] = taxonomy_treemenu_render_menu($menu);
+    $titles[] = $menu['title'];
+  }
+  
+
+  
+  $title = check_plain(implode(', ', $titles));  
+  drupal_set_title($title);
+    
+  //$output .= theme('taxonomy_treemenu_menu_page', $menu_content);
+
+  
+  
+  $output .= theme('page_treemenus', $menus);
+  return $output;
+}
+ */
+

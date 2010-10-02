@@ -1,0 +1,110 @@
+<!-- $Id: custom-urls.html,v 1.1 2009/08/03 18:57:48 rcrowther Exp $ -->
+
+<h3>Summary</h3>
+<ul>
+<li>
+Paged menus can have a breadcrumb (impossible with non-custom urls).
+</li>
+<li>
+Term pages (lists of node links) can automatically reflect choices of menu structure set in Taxonomy Treemenu 
+(this works both for the internal renderer and for the Views module). 
+See <a href="&topic:taxonomy_treemenu/term-rendering&">term rendering</a>.
+</li>
+<li>
+Adds template suggestions targeting treemenu items (different prefixes offer different possibilities).
+
+</li>
+<li>
+...but creates a custom url (prefix with ?q=/ttm/... as default and minimum).
+Will potentially double url aliases (unless you only use treemenu URLs for navigation).
+</li>
+</ul>
+
+<h3>Description</h3>
+<p>
+Consider this, that there is a treemenu on a page.
+The links use the Druapl standard routes of 'term/%' and 'node/%'.
+A user clicks on a link, and a page of terms (a node list) or the node, is called.
+</p>
+<p>
+Drupal then reacts to the requests. 
+'term/%' calls the Taxonomy module, 'node/%' calls the Node module.
+The Taxonomy Treemenu module is not called at all, and so can not contribute any data to the page.
+This transaction is sometimes reffered to as 'stateless'. 
+In summary, one page call can not carry data along to another.
+</p>
+<p>
+Knowledgeable web users will here recognise that, while web communication is generally stateless, computers are not.
+Both the server and client computers can carry state information, such as sessions and cookies.
+However, for reasons of security and general usage we should not wish to use such methods.
+(It may interest you to know that the module DHTML Menu uses cookies to maintain menu state for a user. 
+This is an example of a good use of cookies.)
+</p>
+<p>
+Despite the stateless nature of web transactions, 
+there is one approved and accepted way of carrying information to a webpage, 
+which is to add information to the URL.
+Taxonomy Treemenu's solution is to add a prefix to the URL of any node or term called from the menu, 
+using link URLs of this form,
+</p>
+<pre>
+ttm/[some information]/node/%
+ttm/[some information]/term/%
+</pre>
+<p>
+When a URL such as this is called, Drupal know this is a customized Taxonomy Treemenu link,
+so it asks Taxonomy Treemenu how to react and what to put on the page.
+At this point the module can add some useful information.
+First, on a term page, the module can reorder and filter the node items,
+so when a user visits the page, the node list will have the same structure as as the menu.
+Second, a paged menu can have a breadcrumb. 
+This is because the module can check the node or term value against known links, 
+and then work out where in the tree the link must have been.
+Read more about <a href="&topic:taxonomy_treemenu/multiple-breadcrumbs&">multiple breadcrumbs</a>.
+</p>
+<p>
+One final advantage gained by prefixes is that they generate useful template suggestions.
+All taxonomy treemenu links can be styled with a handful of templates. 
+Read more about <a href="&topic:taxonomy_treemenu/template-suggestions&">template suggestions</a>.
+</p>
+
+<p>
+So far we have discussed gains, but menu prefixes may not be the best solution if you use link aliasing. 
+When using a prefix, any node or term will have two valid paths, e.g.
+<pre>
+node/%
+ttm/[some information]/node/%
+term/%
+ttm/[some information]/term/%
+</pre>
+<p>
+If you use any other navigation method besides Treemenu, you will need two aliases, one for each URL. 
+This will be harder to maintain.
+Also, the aliases must be different, even if the difference is not very apparent to a user,
+e.g.
+www.PatricksBlog/BlackWidows
+www.PatrickBlog/BlackWidows
+ 
+A search engine will know the difference, so using these options will reduce your page hits.
+A developer must weigh up what their site needs, and decide what is best for the site needs.
+</p>
+<p>
+At this point you might like to look at some<a href="&topic:taxonomy_treemenu/site-examples&">examples of site menu configuratiion</a>.
+</p>
+<p>
+One last note, for programmers (of presumably small) sites only.
+Drupal hooks will allow Taxonomy Treemenu to affect the rendering of generic links, and they require no state data.
+Using hook_link_alter(), for example, 
+a coder can call taxonomy_treemenu_get_active_breadcrumbs() and so provide a breadcrumb on paged menus.
+</p>
+<p>
+And hook_preprocess_page() can be used to search for items in a treemenu.
+If a page is identified as part of a treemenu, the list of template suggestions can then be altered,
+thus styling treemenu targets.
+</p>
+<p>
+Drupal hooks can add these functions without altering the URLs, and so requiring multiple aliases.
+But this solution will add considerable weight of code to every link or page call on a site.
+Which is why they are not currently implemented in the module
+You can always implement them yourself, if you have a special need.
+</p>

@@ -1,0 +1,136 @@
+/* $Id: taxonomy-treemenu-admin.css,v 1.5 2009/08/24 20:20:03 rcrowther Exp $ */
+
+#tt-form-title {
+  font-weight:bold;
+}
+
+#tt-form-body {
+  border:1px solid #D6DBDE;
+}
+
+.clear-block {
+  display:block;
+}
+
+
+#ttm-data-display {
+  border-top:2px solid #eeeeee;
+  border-left:2px solid #eeeeee;
+  border-right:2px solid white;
+  border-bottom:2px solid white;
+  padding:0;
+  margin:2em 0;
+}
+#ttm-data-display-liner {
+   border:2px solid #b6b6b6; 
+
+
+}
+#ttm-data-display-liner-2 {
+  border-right:1px solid #cccccc;
+  border-bottom:1px solid #cccccc;
+  border-top:1px solid white;
+  border-left:1px solid white;
+  padding:1em;
+}
+/* ttm tabs */
+.ttm-tab-wrapper {
+  float:left;
+  width: 32%;
+}
+
+.ttm-tab {
+  margin:0.5em 0.5em 0.5em 1em;
+  background-color:#F6F6F6;
+  border:1px solid #EFEFEF;
+}
+
+.tt-edit-tab-liner {
+  margin:0.5em 0.5em 0.5em 1em;
+  background-color:#F6F6F6;
+  border:1px solid #EFEFEF;
+}
+
+.ttm-tab-title {
+  background-color:#EFEFEF;
+  font-weight:bold;
+  margin-bottom: 0.3em;
+  padding:0.1em 0.3em;
+}
+
+/*Some trickier, particularized tab content css */
+.ttm-opts-sub-container {
+  margin-left: 3em;
+}
+
+.ttm-tab-content {
+  margin:0 0.8em 0.2em 0.8em;
+}
+
+/*ttm-checkbox-raws*/
+.ttm-checkbox-raw-input{
+  font-size:0.85em;
+  margin:0 0.2em 0 0;
+}
+
+.ttm-checkbox-raw .description {
+  margin-left:2.3em;
+  /* mimic a form item description */
+  font-size:0.85em;
+}
+
+/*display currently unused. But heck.*/
+.tt-edit-tab-display {
+  background-color:white;
+  border:1px solid #EFEFEF;
+  margin:0.2em 1em 0.2em 0;
+}
+
+
+/* swaprowdrag css*/
+.ttm-sort-row {
+  margin: 0.42em 0 0.42em 0;
+}
+
+.ttm-sort-row .description {
+  clear:both;
+  margin:0 0 0 2.6em;
+  /* Not part of the checkbox, so... */
+  font-size:0.85em;
+}
+.ttm-draggable-row {
+  margin: 0.42em 0 0.42em 0;
+}
+
+.ttm-draggable-row .description {
+  clear:both;
+  margin:0 0 0 2.6em;
+  /* Not part of the checkbox, so... */
+  font-size:0.85em;
+}
+.warning-container{
+  float:left;
+}
+
+.warning-container span{
+  padding-right: 0.4em;
+}
+
+.draggable a.tabledrag-handle {
+/* Mostly inherited from stock Drupal, bar this... */
+padding:0.42em 0.7em 0.42em 0.5em;
+}
+
+
+/*sort order*/
+.ttm-toggle{
+  float:right;
+  font-size:10px;
+}
+
+.ttm-toggle-off {
+  color:black;
+}
+.ttm-toggle-on {
+  color:blue;
+}

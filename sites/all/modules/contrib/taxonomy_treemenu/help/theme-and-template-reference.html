@@ -1,0 +1,34 @@
+<!-- $Id: theme-and-template-reference.html,v 1.2 2009/08/16 10:28:13 rcrowther Exp $ -->
+
+
+
+Also see <a href="http://drupal.org/node/457740">Beginners guide to overriding themable output</a>.
+
+<h4>terms (lists of child nodes of taxonomy terms)</h4>
+
+<i>Stock Drupal styling</i>
+i.e. from a URL like taxonomy/term/4
+
+You can change the term description and css by overriding the function
+theme_taxonomy_term_page($tids, $result)
+
+You want to change the contents of a row in the display? You are way out of luck.
+The rows are rendered using an unthemed function taxonomy_render_nodes($result).
+
+Several options then,
+
+Use the Views module. Put anything in the rows then.
+Use a taxonomy field extension module e.g. ?.
+(A little like the above), there are Content Construction Kit type modules for terms. I don't know if or how they might work with taxonomy Treemenu. 
+Hang on for Drupal 7, scheduled to have field additions to term lists? 
+
+<i>Treemenu unformatted styling</i>
+Three overridable theme functions
+
+theme_taxonomy_treemenu_term_unformatted_page($term, $result)
+  $term presently has tid, name, and description fields.
+theme_taxonomy_treemenu_term_row_data($data)
+  $data is the result of a taxonomy treemenu query on nodes. Presently, has sticky, title, and created fields.
+theme_taxonomy_treemenu_term_row($row)
+
+All in taxonomy_treemenu/includes/taxonomy_treemenu.pages.inc

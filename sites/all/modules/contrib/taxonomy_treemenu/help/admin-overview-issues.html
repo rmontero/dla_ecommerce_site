@@ -1,0 +1,139 @@
+<!-- $Id: admin-overview-issues.html,v 1.2 2009/09/26 21:53:11 rcrowther Exp $ -->
+
+
+<h3>Summary</h3>
+<p>
+Complexities in Adim come about through two main issues. 
+These issues are intrinsic to website menu systems, not Taxonomy Treemenu or Drupal specific,
+</p>
+
+<ol>
+<li>
+If a menu contains links to standard Drupal terms and nodes, Taxonomy Treemenu is not summoned.
+See <a href="&topic:taxonomy_treemenu/custom-urls&">custom URLs</a> for more information.
+</li>
+<li>
+If a menu is built on a multiple hierarchy, then the menu system will not know what to do with the ambiguous links.
+See <a href="&topic:taxonomy_treemenu/multiple-hierarchy-ambiguity&">multiple hierarchy ambiguity</a> for more information.
+</li>
+</ol>
+
+These issues affect,
+<ul>
+<li> 
+backtracking breadcrumbs on paged menus.
+</li>
+<li>
+breadcrumbs in multiple hierarchies.
+</li>
+<li>
+templating of menus.
+</li>
+<li>
+structuring term lists to reflect the structure of the menu.
+</li>
+</ul>
+
+They can be resolved by,
+
+<ul>
+<li> 
+Ignoring them and the functionality.
+</li>
+<li> 
+Using hooks and preprocessors.
+This is a very CPU expensive operation, so not implemented in Treemenu, 
+but a coder can implement using provided functions.
+</li>
+<li> 
+Using state saving methods.
+Treemenu avoids these solutions as not generalized.
+</li>
+<li>
+Using modified URLs.
+Solves all of the above, at the expense of duplicating path aliasing.
+</li>
+</ul>
+
+
+<h3>An overview of considerations for taxonomy menus</h3>
+
+<p>
+This summary applies to all menu systems which display taxonomy type information.
+We will mainly refer to the issues by using Drupal terms, such as 'node', or 'term'.
+Where appropriate, we have added information about solutions offered by Taxonomy Treemenu.
+</p>
+<p>
+When Taxonomy Treemenu is set to default, 
+the links in the menus offer stock Drupal paths, i.e. 'taxonomy/term/%' and 'node/%'.
+If a user clicks on a link, they go to one of these URLS. Taxonomy Treemenu is not called.
+Read more about invoking Taxonomy Treemenu.
+</p>
+<p>
+The second consideration is that there is an ambiguity when using multiple hierarchies.
+The organisation of the taxonomy must be somewhat 'flattened' to display a treemnu, 
+and this results in multiple links for a single node.
+Read more about multiple hierarchy ambiguity.
+</p>
+
+
+<p>
+due to these issues, some functions are difficult to provide,
+
+<ul>
+<li>breadcrumbs
+ On a paged menu, treemenu cannot backtrack if the module is never invoked. 
+ Within a multiple hierarchial taxonomy menu, a single node may refer to several links.
+ In blocks or on pages, the menu system will not know which link to provide for a breadcrumb.
+</li> 
+<li>menu expansion
+ Menu expanding menus are not currently enabled in treemenu, but the code is there.
+ When displaying multiple heirarchies, expanding menus can not expand if the target is ambiguous.
+ </li>
+<li>Term list structure.
+It is desirable, in some situations, 
+for any paged lists of nodes to reflect the structure of the menu they were summoned from.
+A menu system can't provide this information if it is never invoked.
+</li>
+</ul>
+
+Note that these issues may not apply to many sites.
+Sites may choose not to navigate by breadcrumb, for example, or enforce a single hierarchy.
+If the primary site navigation is not by treemenus, there is no need for term lists to reflect the menu.
+However, there are sites which will wish to implement such functionality,
+and many large sites have custom menu systems to do that.
+</p>
+
+
+<h3>How to invoke treemenu? </h3>
+<p>
+First, there are Drupal hooks and preprocessors.
+<ul>
+<li>hook_menu_link_alter() will give any module the chance to alter a link,</li> 
+<li>hook_preprocess_page() will do the same for pages.</li>
+</ul>
+But hooks for rendering are slow, as they are called for every link or page on site.
+
+Hooks and preprocessors are appropriate for adding small pieces of information, 
+but not the large changes suggested by Taxonomy Treemnu.
+Also, a hook does not answer the question, 'How does the menu system know this is a treemenu link?'.
+We are considering building parts of the API, and adding instuctions, 
+so users can make use of some functions if they wish.
+</p>
+<p>
+Second, there are treemenu specific URLs.
+These will always invoke treemenu 'on demand' and at the appropriate time. 
+However, they produce multiple paths to terms and nodes, which can multiply site aliases.
+Read more about custom urls.
+</p>
+
+<h3>How to pass information to a menu system</h3>
+<p>
+The first way is to carry the information either in the server (sessions) or at the client (cookies) end.
+For many security, programming, and philosphical reasons treemenu will not take that approach. Sorry.
+</p>
+<p>
+Which leaves the URL as the main source of information, so Taonomy Treemenu provides altered URLs.
+As mentioned elsewhere, this can multiply site aliases.
+</p>
+
