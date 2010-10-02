@@ -22,7 +22,11 @@
       <?php if (!empty($pechi_uc_image)): ?>
       <div class="images grid-8 alpha">
         <?php print $pechi_uc_image; ?>
-      </div><!-- /images -->
+      </div>
+      <?php else: ?>
+      <div class="images noimage grid-8 alpha">
+        <?php print t('Image coming soon'); ?>
+      </div>
       <?php endif; ?>
 
       <div class="content grid-4 omega">
