@@ -465,7 +465,7 @@ div.view-rotador .views-slideshow-controls-top {
   display: inline-block;
   position: relative;
   top: 180px;
-  z-index: 5;
+  z-index: 100;
   width: 100%;
   float: left;
 }
@@ -862,4 +862,56 @@ table.views-view-grid tr td {
 .messages a {
   color: #c68c74;
   border-bottom: 1px dotted #c68c74;
+}
+
+.page-store #main {
+  position: relative;
+}
+.view-tienda .view-filters {
+  position: absolute;
+  top: 34px;
+  right: 0;
+}
+.view-tienda .views-exposed-form {
+  text-align: right;
+}
+
+.view-tienda .views-exposed-widget {
+  display: inline-block;
+}
+
+.view-tienda .views-exposed-widgets {
+  text-align: right;
+}
+.view-tienda .views-exposed-widget label,
+.view-tienda .views-widget {
+  float:left;
+  margin-right: 10px;
+}
+.view-tienda .views-exposed-widget .form-submit {
+  float: left;
+  margin: 0 !important;
+}
+
+.views-exposed-form .views-exposed-widget  {
+  float: none;
+}
+
+.view-content {
+  position: relative;
+  z-index: 0;
+}
+.views-slideshow-controls-bottom {
+  position:absolute;
+  top:40%;
+  width:100%;
+  z-index:200;
+}
+
+.view-display-id-block_2 .views-field-title {
+  height: auto;
+  line-height: 125%;
+  display: block;
+  clear: both;
+  text-transform: none;
 }
